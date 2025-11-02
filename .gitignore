@@ -1,0 +1,22 @@
+# Node
+node_modules/
+
+# Build
+dist/
+
+# Env
+.env
+.env.*
+config/env/
+test.env
+
+# Logs
+npm-debug.log*
+.Yarn-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# Others
+coverage/

@@ -1,0 +1,159 @@
+{
+  "name": "🏆 Gamification",
+  "item": [
+    {
+      "name": "Get All Badges",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/badges",
+          "host": ["{{baseUrl}}"],
+          "path": ["badges"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Badge by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/badges/{{badgeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["badges", "{{badgeId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Badges",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/badges",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}", "badges"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check for New Badges",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/badges/check",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "badges", "check"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Badge Leaderboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/badges/leaderboard?category=SKILL&limit=50",
+          "host": ["{{baseUrl}}"],
+          "path": ["badges", "leaderboard"],
+          "query": [
+            {
+              "key": "category",
+              "value": "SKILL"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Achievement Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/achievements",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}", "achievements"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Badge Categories",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/badges/categories",
+          "host": ["{{baseUrl}}"],
+          "path": ["badges", "categories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Badge Progress",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/badges/{{badgeId}}/progress",
+          "host": ["{{baseUrl}}"],
+          "path": ["badges", "{{badgeId}}", "progress"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

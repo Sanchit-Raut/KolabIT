@@ -1,0 +1,306 @@
+{
+  "name": "🚀 Project Management",
+  "item": [
+    {
+      "name": "Create Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Building a full-featured e-commerce platform with React, Node.js, and MongoDB. Looking for team members with frontend and backend experience.\",\n  \"type\": \"ACADEMIC\",\n  \"maxMembers\": 4,\n  \"startDate\": \"2025-09-15T00:00:00.000Z\",\n  \"endDate\": \"2025-12-15T00:00:00.000Z\",\n  \"requiredSkills\": [\"JavaScript\", \"React\", \"Node.js\", \"MongoDB\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Project created successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('projectId', response.data.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get All Projects",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects?status=ACTIVE&type=ACADEMIC&skills=JavaScript&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects"],
+          "query": [
+            {
+              "key": "status",
+              "value": "ACTIVE"
+            },
+            {
+              "key": "type",
+              "value": "ACADEMIC"
+            },
+            {
+              "key": "skills",
+              "value": "JavaScript"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Project Details",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Project",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"E-commerce Platform - Updated\",\n  \"description\": \"Updated description with more details about the project scope and requirements.\",\n  \"maxMembers\": 5\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Project Members",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "members"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send Join Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Hi! I have 2 years of experience with React and Node.js. I'm very excited about this project and would love to contribute to the frontend development.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/join-request",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "join-request"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Join Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/join-requests",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "join-requests"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Accept Join Request",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/join-request/{{requestId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "join-request", "{{requestId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Project Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Setup React Frontend\",\n  \"description\": \"Create the basic React application structure with routing and state management\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2025-09-30T00:00:00.000Z\",\n  \"assigneeId\": \"{{userId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/tasks",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "tasks"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Project Tasks",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/tasks",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "tasks"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Project Task",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Setup React Frontend - Updated\",\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"MEDIUM\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}/tasks/{{taskId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}", "tasks", "{{taskId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Project",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/projects/{{projectId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["projects", "{{projectId}}"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

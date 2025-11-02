@@ -1,0 +1,279 @@
+{
+  "name": "📚 Resource Sharing",
+  "item": [
+    {
+      "name": "Upload Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "title",
+              "value": "Data Structures and Algorithms Notes",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Comprehensive notes covering trees, graphs, and dynamic programming",
+              "type": "text"
+            },
+            {
+              "key": "type",
+              "value": "PDF",
+              "type": "text"
+            },
+            {
+              "key": "subject",
+              "value": "Data Structures",
+              "type": "text"
+            },
+            {
+              "key": "semester",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Resource uploaded successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('resourceId', response.data.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get All Resources",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources?subject=Data Structures&semester=3&type=PDF&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources"],
+          "query": [
+            {
+              "key": "subject",
+              "value": "Data Structures"
+            },
+            {
+              "key": "semester",
+              "value": "3"
+            },
+            {
+              "key": "type",
+              "value": "PDF"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Resource by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Download Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}/download",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "download"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Rate Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent notes! Very comprehensive and well-organized. Helped me understand complex concepts easily.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}/rating",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "rating"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Resource Ratings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}/ratings",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "ratings"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Resource Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Popular Resources",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/popular?limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "popular"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Resource",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Data Structures and Algorithms Notes - Updated\",\n  \"description\": \"Updated comprehensive notes with additional examples and exercises\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Resource",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

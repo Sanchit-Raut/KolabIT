@@ -1,0 +1,280 @@
+{
+  "name": "💬 Community Features",
+  "item": [
+    {
+      "name": "Create Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Looking for React.js Study Group\",\n  \"content\": \"Hey everyone! I'm organizing a React.js study group for the upcoming semester. We'll meet twice a week to work on projects and discuss advanced concepts. Anyone interested?\",\n  \"type\": \"DISCUSSION\",\n  \"tags\": [\"React\", \"Study Group\", \"Frontend\", \"JavaScript\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/posts",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Post created successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('postId', response.data.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get All Posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts?type=DISCUSSION&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts"],
+          "query": [
+            {
+              "key": "type",
+              "value": "DISCUSSION"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Post by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Post",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Looking for React.js Study Group - Updated\",\n  \"content\": \"Updated: We'll meet every Tuesday and Thursday at 6 PM in the library. Bring your laptops!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add Comment to Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"This sounds great! I'm definitely interested. What topics are you planning to cover?\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}/comments",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}", "comments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Post Comments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}/comments",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}", "comments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Like Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}", "like"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unlike Post",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}", "like"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Popular Posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/popular?limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "popular"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/search?q=React&tags=JavaScript&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "React"
+            },
+            {
+              "key": "tags",
+              "value": "JavaScript"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Post",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/posts/{{postId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["posts", "{{postId}}"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

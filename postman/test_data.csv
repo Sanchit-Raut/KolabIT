@@ -1,0 +1,11 @@
+email,firstName,lastName,department,year,semester,rollNumber,bio
+alice.smith@student.spit.ac.in,Alice,Smith,Computer Science,2,3,CS2022001,Passionate about machine learning and AI
+bob.johnson@student.spit.ac.in,Bob,Johnson,Information Technology,3,5,IT2021001,Full-stack developer with React and Node.js experience
+carol.williams@student.spit.ac.in,Carol,Williams,Electronics,4,7,EC2020001,Hardware enthusiast and embedded systems developer
+david.brown@student.spit.ac.in,David,Brown,Computer Science,1,1,CS2023001,New to programming, eager to learn
+eve.davis@student.spit.ac.in,Eve,Davis,Information Technology,2,3,IT2022001,UI/UX designer with frontend development skills
+frank.miller@student.spit.ac.in,Frank,Miller,Electronics,3,5,EC2021001,Robotics and IoT specialist
+grace.wilson@student.spit.ac.in,Grace,Wilson,Computer Science,4,7,CS2020001,Data science and analytics expert
+henry.moore@student.spit.ac.in,Henry,Moore,Information Technology,1,1,IT2023001,Cybersecurity enthusiast
+ivy.taylor@student.spit.ac.in,Ivy,Taylor,Electronics,2,3,EC2022001,Digital signal processing specialist
+jack.anderson@student.spit.ac.in,Jack,Anderson,Computer Science,3,5,CS2021001,Cloud computing and DevOps engineer

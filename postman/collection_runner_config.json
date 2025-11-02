@@ -1,0 +1,207 @@
+{
+  "name": "KolabIT API Collection Runner Configuration",
+  "description": "Configuration for running the KolabIT API collection with different test scenarios",
+  "configurations": [
+    {
+      "name": "Full API Test Suite",
+      "description": "Complete end-to-end testing of all API endpoints",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 1000,
+          "request": 500
+        },
+        "environment": "KolabIT Environment",
+        "data": "test_data.csv",
+        "timeout": {
+          "request": 30000,
+          "script": 5000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "👤 User Management",
+        "🎯 Skill Management",
+        "🚀 Project Management",
+        "📚 Resource Sharing",
+        "💬 Community Features",
+        "🔔 Notifications",
+        "🏆 Gamification",
+        "🧪 Edge Cases & Error Scenarios"
+      ]
+    },
+    {
+      "name": "Authentication Flow Test",
+      "description": "Test authentication and user management flows",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 500,
+          "request": 200
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 15000,
+          "script": 3000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "👤 User Management"
+      ]
+    },
+    {
+      "name": "Core Features Test",
+      "description": "Test core application features",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 1000,
+          "request": 500
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 20000,
+          "script": 4000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "🎯 Skill Management",
+        "🚀 Project Management",
+        "📚 Resource Sharing"
+      ]
+    },
+    {
+      "name": "Community Features Test",
+      "description": "Test community and social features",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 800,
+          "request": 400
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 15000,
+          "script": 3000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "💬 Community Features",
+        "🔔 Notifications",
+        "🏆 Gamification"
+      ]
+    },
+    {
+      "name": "Error Scenarios Test",
+      "description": "Test error handling and edge cases",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 500,
+          "request": 200
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 10000,
+          "script": 2000
+        }
+      },
+      "folders": [
+        "🧪 Edge Cases & Error Scenarios"
+      ]
+    },
+    {
+      "name": "Performance Test",
+      "description": "Load testing with multiple iterations",
+      "settings": {
+        "iterations": 5,
+        "delay": {
+          "item": 200,
+          "request": 100
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 30000,
+          "script": 5000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "👤 User Management",
+        "🎯 Skill Management",
+        "🚀 Project Management"
+      ]
+    },
+    {
+      "name": "Admin Features Test",
+      "description": "Test admin-only features and permissions",
+      "settings": {
+        "iterations": 1,
+        "delay": {
+          "item": 1000,
+          "request": 500
+        },
+        "environment": "KolabIT Environment",
+        "timeout": {
+          "request": 20000,
+          "script": 4000
+        }
+      },
+      "folders": [
+        "🔧 Environment Setup",
+        "🔐 Authentication",
+        "🎯 Skill Management"
+      ],
+      "note": "Requires admin login for skill management operations"
+    }
+  ],
+  "environment_variables": {
+    "baseUrl": "http://localhost:5000/api",
+    "testMode": "true",
+    "enableLogging": "true",
+    "maxRetries": "3",
+    "retryDelay": "1000"
+  },
+  "test_data_files": [
+    {
+      "name": "test_data.csv",
+      "description": "Sample user data for bulk testing",
+      "columns": [
+        "email",
+        "firstName", 
+        "lastName",
+        "department",
+        "year",
+        "semester",
+        "rollNumber",
+        "bio"
+      ]
+    }
+  ],
+  "monitoring_config": {
+    "enabled": true,
+    "frequency": "5 minutes",
+    "timeout": 30000,
+    "retries": 3,
+    "alerts": {
+      "email": ["admin@kolabit.com"],
+      "slack": ["#api-monitoring"],
+      "webhook": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    }
+  },
+  "reporting": {
+    "formats": ["html", "json", "junit"],
+    "output_directory": "./reports",
+    "include_requests": true,
+    "include_responses": false,
+    "include_console_logs": true
+  }
+}
