@@ -1,42 +1,156 @@
--- kolabit_schema.sql
--- Generated from Prisma schema (converted for PostgreSQL)
--- Run in your PostgreSQL DB (e.g., create database kolabit_test; then run this)
-
--- Enable pgcrypto for gen_random_uuid()
+-- Enable extension for gen_random_uuid (pgcrypto)
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- USERS
+-- Table: users
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   email TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
-  firstName TEXT NOT NULL,
-  lastName TEXT NOT NULL,
-  rollNumber TEXT UNIQUE,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  roll_number TEXT UNIQUE,
   department TEXT,
   year INTEGER,
   semester INTEGER,
   bio TEXT,
   avatar TEXT,
-  isVerified BOOLEAN NOT NULL DEFAULT false,
-  verificationToken TEXT,
-  resetToken TEXT,
-  resetTokenExpiry TIMESTAMP WITH TIME ZONE,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+  is_verified BOOLEAN NOT NULL DEFAULT false,
+  verification_token TEXT,
+  reset_token TEXT,
+  reset_token_expiry TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- SKILLS
+-- Table: skills
 CREATE TABLE IF NOT EXISTS skills (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL UNIQUE,
   category TEXT NOT NULL,
   description TEXT,
   icon TEXT,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- BADGES
+-- Table: user_skills
+CREATE TABLE IF NOT EXISTS user_skills (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id TEXT NOT NULL,
+  skill_id TEXT NOT NULL,
+  proficiency TEXT NOT NULL,
+  years_of_exp INTEGER,
+  endorsements INTEGER NOT NULL DEFAULT 0,
+  CONSTRAINT uq_user_skill UNIQUE (user_id, skill_id),
+  CONSTRAINT fk_user_skills_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_skills_skill FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+
+-- Table: projects
+CREATE TABLE IF NOT EXISTS projects (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status TEXT NOT NULL,
+  type TEXT NOT NULL,
+  max_members INTEGER,
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  github_url TEXT,
+  live_url TEXT,
+  owner_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_projects_owner FOREIGN KEY (owner_id) REFERENCES users(id)
+);
+
+-- Table: project_members
+CREATE TABLE IF NOT EXISTS project_members (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  project_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_project_member UNIQUE (project_id, user_id),
+  CONSTRAINT fk_project_members_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_project_members_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: project_skills
+CREATE TABLE IF NOT EXISTS project_skills (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  project_id TEXT NOT NULL,
+  skill_id TEXT NOT NULL,
+  required BOOLEAN NOT NULL DEFAULT true,
+  CONSTRAINT uq_project_skill UNIQUE (project_id, skill_id),
+  CONSTRAINT fk_project_skills_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_project_skills_skill FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+
+-- Table: resources
+CREATE TABLE IF NOT EXISTS resources (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  title TEXT NOT NULL,
+  description TEXT,
+  type TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  semester INTEGER,
+  file_url TEXT,
+  file_name TEXT,
+  file_size INTEGER,
+  downloads INTEGER NOT NULL DEFAULT 0,
+  uploader_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_resources_uploader FOREIGN KEY (uploader_id) REFERENCES users(id)
+);
+
+-- Table: resource_ratings
+CREATE TABLE IF NOT EXISTS resource_ratings (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  resource_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  rating INTEGER NOT NULL,
+  review TEXT,
+  CONSTRAINT uq_resource_rating UNIQUE (resource_id, user_id),
+  CONSTRAINT fk_resource_ratings_resource FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
+  CONSTRAINT fk_resource_ratings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: posts
+CREATE TABLE IF NOT EXISTS posts (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  type TEXT NOT NULL,
+  tags TEXT[] NOT NULL,
+  author_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_posts_author FOREIGN KEY (author_id) REFERENCES users(id)
+);
+
+-- Table: comments
+CREATE TABLE IF NOT EXISTS comments (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  content TEXT NOT NULL,
+  post_id TEXT NOT NULL,
+  author_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_comments_author FOREIGN KEY (author_id) REFERENCES users(id),
+  CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
+-- Table: likes
+CREATE TABLE IF NOT EXISTS likes (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  post_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  CONSTRAINT uq_like UNIQUE (post_id, user_id),
+  CONSTRAINT fk_likes_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_likes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: badges
 CREATE TABLE IF NOT EXISTS badges (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL UNIQUE,
@@ -46,193 +160,90 @@ CREATE TABLE IF NOT EXISTS badges (
   criteria TEXT NOT NULL
 );
 
--- PROJECTS
-CREATE TABLE IF NOT EXISTS projects (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  status TEXT NOT NULL,
-  type TEXT NOT NULL,
-  maxMembers INTEGER,
-  startDate TIMESTAMP WITH TIME ZONE,
-  endDate TIMESTAMP WITH TIME ZONE,
-  githubUrl TEXT,
-  liveUrl TEXT,
-  ownerId TEXT NOT NULL,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_projects_owner FOREIGN KEY(ownerId) REFERENCES users(id) ON DELETE RESTRICT
-);
-
--- POSTS
-CREATE TABLE IF NOT EXISTS posts (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  type TEXT NOT NULL,
-  tags TEXT[] NOT NULL,
-  authorId TEXT NOT NULL,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_posts_author FOREIGN KEY(authorId) REFERENCES users(id) ON DELETE RESTRICT
-);
-
--- RESOURCES
-CREATE TABLE IF NOT EXISTS resources (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  title TEXT NOT NULL,
-  description TEXT,
-  type TEXT NOT NULL,
-  subject TEXT NOT NULL,
-  semester INTEGER,
-  fileUrl TEXT,
-  fileName TEXT,
-  fileSize INTEGER,
-  downloads INTEGER NOT NULL DEFAULT 0,
-  uploaderId TEXT NOT NULL,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_resources_uploader FOREIGN KEY(uploaderId) REFERENCES users(id) ON DELETE RESTRICT
-);
-
--- COMMENTS
-CREATE TABLE IF NOT EXISTS comments (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  content TEXT NOT NULL,
-  postId TEXT NOT NULL,
-  authorId TEXT NOT NULL,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_comments_author FOREIGN KEY(authorId) REFERENCES users(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_comments_post FOREIGN KEY(postId) REFERENCES posts(id) ON DELETE CASCADE
-);
-
--- LIKES (unique per postId,userId)
-CREATE TABLE IF NOT EXISTS likes (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  postId TEXT NOT NULL,
-  userId TEXT NOT NULL,
-  CONSTRAINT fk_likes_post FOREIGN KEY(postId) REFERENCES posts(id) ON DELETE CASCADE,
-  CONSTRAINT fk_likes_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT likes_unique_post_user UNIQUE (postId, userId)
-);
-
--- PROJECT_MEMBERS (unique per projectId,userId)
-CREATE TABLE IF NOT EXISTS project_members (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  projectId TEXT NOT NULL,
-  userId TEXT NOT NULL,
-  role TEXT NOT NULL,
-  joinedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_pm_project FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-  CONSTRAINT fk_pm_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT pm_unique_project_user UNIQUE (projectId, userId)
-);
-
--- PROJECT_SKILLS (unique per projectId,skillId)
-CREATE TABLE IF NOT EXISTS project_skills (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  projectId TEXT NOT NULL,
-  skillId TEXT NOT NULL,
-  required BOOLEAN NOT NULL DEFAULT true,
-  CONSTRAINT fk_ps_project FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-  CONSTRAINT fk_ps_skill FOREIGN KEY(skillId) REFERENCES skills(id) ON DELETE RESTRICT,
-  CONSTRAINT ps_unique_project_skill UNIQUE (projectId, skillId)
-);
-
--- USER_SKILLS (unique per userId,skillId)
-CREATE TABLE IF NOT EXISTS user_skills (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  userId TEXT NOT NULL,
-  skillId TEXT NOT NULL,
-  proficiency TEXT NOT NULL,
-  yearsOfExp INTEGER,
-  endorsements INTEGER NOT NULL DEFAULT 0,
-  CONSTRAINT fk_us_skill FOREIGN KEY(skillId) REFERENCES skills(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_us_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT us_unique_user_skill UNIQUE (userId, skillId)
-);
-
--- JOIN_REQUESTS (unique per projectId,userId)
-CREATE TABLE IF NOT EXISTS join_requests (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  projectId TEXT NOT NULL,
-  userId TEXT NOT NULL,
-  message TEXT,
-  status TEXT NOT NULL,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_jr_project FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-  CONSTRAINT fk_jr_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT jr_unique_project_user UNIQUE (projectId, userId)
-);
-
--- RESOURCE_RATINGS (unique per resourceId,userId)
-CREATE TABLE IF NOT EXISTS resource_ratings (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  resourceId TEXT NOT NULL,
-  userId TEXT NOT NULL,
-  rating INTEGER NOT NULL,
-  review TEXT,
-  CONSTRAINT fk_rr_resource FOREIGN KEY(resourceId) REFERENCES resources(id) ON DELETE CASCADE,
-  CONSTRAINT fk_rr_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT rr_unique_resource_user UNIQUE (resourceId, userId)
-);
-
--- USER_BADGES (unique per userId,badgeId)
+-- Table: user_badges
 CREATE TABLE IF NOT EXISTS user_badges (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  userId TEXT NOT NULL,
-  badgeId TEXT NOT NULL,
-  earnedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_ub_badge FOREIGN KEY(badgeId) REFERENCES badges(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_ub_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT ub_unique_user_badge UNIQUE (userId, badgeId)
+  user_id TEXT NOT NULL,
+  badge_id TEXT NOT NULL,
+  earned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_user_badge UNIQUE (user_id, badge_id),
+  CONSTRAINT fk_user_badges_badge FOREIGN KEY (badge_id) REFERENCES badges(id),
+  CONSTRAINT fk_user_badges_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- NOTIFICATIONS
+-- Table: notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  userId TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   type TEXT NOT NULL,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
-  isRead BOOLEAN NOT NULL DEFAULT false,
+  is_read BOOLEAN NOT NULL DEFAULT false,
   data JSONB,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_notifications_user FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- TASKS
+-- Table: join_requests
+CREATE TABLE IF NOT EXISTS join_requests (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  project_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  message TEXT,
+  status TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_join_request UNIQUE (project_id, user_id),
+  CONSTRAINT fk_join_requests_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_join_requests_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: tasks
 CREATE TABLE IF NOT EXISTS tasks (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  projectId TEXT NOT NULL,
+  project_id TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
   status TEXT NOT NULL,
   priority TEXT NOT NULL,
-  assigneeId TEXT,
-  dueDate TIMESTAMP WITH TIME ZONE,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_tasks_project FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-  CONSTRAINT fk_tasks_assignee FOREIGN KEY(assigneeId) REFERENCES users(id) ON DELETE SET NULL
+  assignee_id TEXT,
+  due_date TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_tasks_assignee FOREIGN KEY (assignee_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
--- MESSAGES
+-- Table: messages
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   content TEXT NOT NULL,
-  senderId TEXT NOT NULL,
-  receiverId TEXT NOT NULL,
-  isRead BOOLEAN NOT NULL DEFAULT false,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT fk_messages_receiver FOREIGN KEY(receiverId) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_messages_sender FOREIGN KEY(senderId) REFERENCES users(id) ON DELETE CASCADE
+  sender_id TEXT NOT NULL,
+  receiver_id TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_messages_receiver FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Indexes (optional helpful indexes)
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_skills_name ON skills(name);
-CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects(ownerId);
-CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(authorId);
-CREATE INDEX IF NOT EXISTS idx_resources_uploader ON resources(uploaderId);
+-- Optional: add commonly useful indexes for FK columns (improves join performance)
+CREATE INDEX IF NOT EXISTS idx_user_skills_user_id ON user_skills(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_skill_id ON user_skills(skill_id);
+CREATE INDEX IF NOT EXISTS idx_project_members_project_id ON project_members(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_members_user_id ON project_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_project_skills_project_id ON project_skills(project_id);
+CREATE INDEX IF NOT EXISTS idx_resources_uploader_id ON resources(uploader_id);
+CREATE INDEX IF NOT EXISTS idx_resource_ratings_resource_id ON resource_ratings(resource_id);
+CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_badges_user_id ON user_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_join_requests_project_id ON join_requests(project_id);
+CREATE INDEX IF NOT EXISTS idx_join_requests_user_id ON join_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee_id ON tasks(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON messages(receiver_id);

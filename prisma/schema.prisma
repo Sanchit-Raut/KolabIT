@@ -7,268 +7,268 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                String           @id @default(cuid())
-  email             String           @unique
-  password          String
-  firstName         String           @map("firstname")
-  lastName          String           @map("lastname")
-  rollNumber        String?          @unique @map("rollnumber")
-  department        String?
-  year              Int?
-  semester          Int?
-  bio               String?
-  avatar            String?
-  isVerified        Boolean          @default(false) @map("isverified")
-  verificationToken String?          @map("verificationtoken")
-  resetToken        String?          @map("resettoken")
-  resetTokenExpiry  DateTime?        @map("resettokenexpiry")
-  createdAt         DateTime         @default(now()) @map("createdat")
-  updatedAt         DateTime         @updatedAt @map("updatedat")
-  comments          Comment[]
-  joinRequests      JoinRequest[]
-  likes             Like[]
-  receivedMessages  Message[]        @relation("MessageReceiver") @map("received_messages")
-  sentMessages      Message[]        @relation("MessageSender") @map("sent_messages")
-  notifications     Notification[]
-  posts             Post[]
-  projectMembers    ProjectMember[]  @map("project_members")
-  ownedProjects     Project[]        @relation("ProjectOwner") @map("owned_projects")
-  resourceRatings   ResourceRating[] @map("resource_ratings")
-  resources         Resource[]
-  assignedTasks     Task[]           @relation("TaskAssignee") @map("assigned_tasks")
-  userBadges        UserBadge[]      @map("user_badges")
-  userSkills        UserSkill[]      @map("user_skills")
+model user {
+  id                  String            @id @default(cuid())
+  email               String            @unique
+  password            String
+  first_name          String
+  last_name           String
+  roll_number         String?           @unique
+  department          String?
+  year                Int?
+  semester            Int?
+  bio                 String?
+  avatar              String?
+  is_verified         Boolean           @default(false)
+  verification_token  String?
+  reset_token         String?
+  reset_token_expiry  DateTime?
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  comments            comment[]
+  join_requests       join_request[]
+  likes               like[]
+  received_messages   message[]         @relation("message_receiver")
+  sent_messages       message[]         @relation("message_sender")
+  notifications       notification[]
+  posts               post[]
+  project_members     project_member[]
+  owned_projects      project[]         @relation("project_owner")
+  resource_ratings    resource_rating[]
+  resources           resource[]
+  assigned_tasks      task[]            @relation("task_assignee")
+  user_badges         user_badge[]
+  user_skills         user_skill[]
 
   @@map("users")
 }
 
-model Skill {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  category      String
-  description   String?
-  icon          String?
-  createdAt     DateTime       @default(now())
-  projectSkills ProjectSkill[]
-  userSkills    UserSkill[]
+model skill {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  category        String
+  description     String?
+  icon            String?
+  created_at      DateTime        @default(now())
+  project_skills  project_skill[]
+  user_skills     user_skill[]
 
   @@map("skills")
 }
 
-model UserSkill {
-  id           String @id @default(cuid())
-  userId       String
-  skillId      String
-  proficiency  String
-  yearsOfExp   Int?
-  endorsements Int    @default(0)
-  skill        Skill  @relation(fields: [skillId], references: [id])
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model user_skill {
+  id            String  @id @default(cuid())
+  user_id       String
+  skill_id      String
+  proficiency   String
+  years_of_exp  Int?
+  endorsements  Int     @default(0)
+  skill         skill   @relation(fields: [skill_id], references: [id])
+  user          user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([userId, skillId])
+  @@unique([user_id, skill_id])
   @@map("user_skills")
 }
 
-model Project {
-  id             String          @id @default(cuid())
-  title          String
-  description    String
-  status         String
-  type           String
-  maxMembers     Int?             @map("maxmembers")
-  startDate      DateTime?        @map("startdate")
-  endDate        DateTime?        @map("enddate")
-  githubUrl      String?         @map("githuburl")
-  liveUrl        String?         @map("liveurl")
-  ownerId        String          @map("ownerid")
-  createdAt      DateTime        @default(now()) @map("createdat")
-  updatedAt      DateTime        @updatedAt @map("updatedat")
-  joinRequests   JoinRequest[]
-  members        ProjectMember[]
-  requiredSkills ProjectSkill[]
-  owner          User            @relation("ProjectOwner", fields: [ownerId], references: [id])
-  tasks          Task[]
+model project {
+  id               String           @id @default(cuid())
+  title            String
+  description      String
+  status           String
+  type             String
+  max_members      Int?
+  start_date       DateTime?
+  end_date         DateTime?
+  github_url       String?
+  live_url         String?
+  owner_id         String
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  join_requests    join_request[]
+  members          project_member[]
+  required_skills  project_skill[]
+  owner            user             @relation("project_owner", fields: [owner_id], references: [id])
+  tasks            task[]
 
   @@map("projects")
 }
 
-model ProjectMember {
-  id        String   @id @default(cuid())
-  projectId String
-  userId    String
-  role      String
-  joinedAt  DateTime @default(now())
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model project_member {
+  id          String    @id @default(cuid())
+  project_id  String
+  user_id     String
+  role        String
+  joined_at   DateTime  @default(now())
+  project     project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, userId])
+  @@unique([project_id, user_id])
   @@map("project_members")
 }
 
-model ProjectSkill {
-  id        String  @id @default(cuid())
-  projectId String
-  skillId   String
-  required  Boolean @default(true)
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  skill     Skill   @relation(fields: [skillId], references: [id])
+model project_skill {
+  id          String   @id @default(cuid())
+  project_id  String
+  skill_id    String
+  required    Boolean  @default(true)
+  project     project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  skill       skill    @relation(fields: [skill_id], references: [id])
 
-  @@unique([projectId, skillId])
+  @@unique([project_id, skill_id])
   @@map("project_skills")
 }
 
-model Resource {
-  id          String           @id @default(cuid())
-  title       String
-  description String?
-  type        String
-  subject     String
-  semester    Int?
-  fileUrl     String?
-  fileName    String?
-  fileSize    Int?
-  downloads   Int              @default(0)
-  uploaderId  String
-  createdAt   DateTime         @default(now())
-  ratings     ResourceRating[]
-  uploader    User             @relation(fields: [uploaderId], references: [id])
+model resource {
+  id           String             @id @default(cuid())
+  title        String
+  description  String?
+  type         String
+  subject      String
+  semester     Int?
+  file_url     String?
+  file_name    String?
+  file_size    Int?
+  downloads    Int                @default(0)
+  uploader_id  String
+  created_at   DateTime           @default(now())
+  ratings      resource_rating[]
+  uploader     user               @relation(fields: [uploader_id], references: [id])
 
   @@map("resources")
 }
 
-model ResourceRating {
-  id         String   @id @default(cuid())
-  resourceId String
-  userId     String
-  rating     Int
-  review     String?
-  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model resource_rating {
+  id           String     @id @default(cuid())
+  resource_id  String
+  user_id      String
+  rating       Int
+  review       String?
+  resource     resource   @relation(fields: [resource_id], references: [id], onDelete: Cascade)
+  user         user       @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([resourceId, userId])
+  @@unique([resource_id, user_id])
   @@map("resource_ratings")
 }
 
-model Post {
-  id        String    @id @default(cuid())
-  title     String
-  content   String
-  type      String
-  tags      String[]
-  authorId  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  comments  Comment[]
-  likes     Like[]
-  author    User      @relation(fields: [authorId], references: [id])
+model post {
+  id          String     @id @default(cuid())
+  title       String
+  content     String
+  type        String
+  tags        String[]
+  author_id   String
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  comments    comment[]
+  likes       like[]
+  author      user       @relation(fields: [author_id], references: [id])
 
   @@map("posts")
 }
 
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  postId    String
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+model comment {
+  id          String    @id @default(cuid())
+  content     String
+  post_id     String
+  author_id   String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  author      user      @relation(fields: [author_id], references: [id])
+  post        post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
 
-model Like {
-  id     String @id @default(cuid())
-  postId String
-  userId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model like {
+  id        String  @id @default(cuid())
+  post_id   String
+  user_id   String
+  post      post    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user      user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId])
+  @@unique([post_id, user_id])
   @@map("likes")
 }
 
-model Badge {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  description String
-  icon        String
-  category    String
-  criteria    String
-  userBadges  UserBadge[]
+model badge {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  description   String
+  icon          String
+  category      String
+  criteria      String
+  user_badges   user_badge[]
 
   @@map("badges")
 }
 
-model UserBadge {
-  id       String   @id @default(cuid())
-  userId   String
-  badgeId  String
-  earnedAt DateTime @default(now())
-  badge    Badge    @relation(fields: [badgeId], references: [id])
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model user_badge {
+  id         String    @id @default(cuid())
+  user_id    String
+  badge_id   String
+  earned_at  DateTime  @default(now())
+  badge      badge     @relation(fields: [badge_id], references: [id])
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([userId, badgeId])
+  @@unique([user_id, badge_id])
   @@map("user_badges")
 }
 
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  data      Json?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model notification {
+  id          String    @id @default(cuid())
+  user_id     String
+  type        String
+  title       String
+  message     String
+  is_read     Boolean   @default(false)
+  data        Json?
+  created_at  DateTime  @default(now())
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
 
-model JoinRequest {
-  id        String   @id @default(cuid())
-  projectId String
-  userId    String
-  message   String?
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model join_request {
+  id          String    @id @default(cuid())
+  project_id  String
+  user_id     String
+  message     String?
+  status      String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  project     project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, userId])
+  @@unique([project_id, user_id])
   @@map("join_requests")
 }
 
-model Task {
-  id          String    @id @default(cuid())
-  projectId   String
-  title       String
-  description String?
-  status      String
-  priority    String
-  assigneeId  String?         @map("assigneeid")
-  dueDate     DateTime?       @map("duedate")
-  createdAt   DateTime        @default(now()) @map("createdat")
-  updatedAt   DateTime        @updatedAt @map("updatedat")
-  assignee    User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model task {
+  id           String    @id @default(cuid())
+  project_id   String
+  title        String
+  description  String?
+  status       String
+  priority     String
+  assignee_id  String?
+  due_date     DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  assignee     user?     @relation("task_assignee", fields: [assignee_id], references: [id])
+  project      project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
 
   @@map("tasks")
 }
 
-model Message {
-  id         String   @id @default(cuid())
-  content    String
-  senderId   String          @map("senderid")
-  receiverId String          @map("receiverid")
-  isRead     Boolean         @default(false) @map("isread")
-  createdAt  DateTime        @default(now()) @map("createdat")
-  receiver   User           @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  sender     User           @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+model message {
+  id           String    @id @default(cuid())
+  content      String
+  sender_id    String
+  receiver_id  String
+  is_read      Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  receiver     user      @relation("message_receiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+  sender       user      @relation("message_sender", fields: [sender_id], references: [id], onDelete: Cascade)
 
   @@map("messages")
 }
