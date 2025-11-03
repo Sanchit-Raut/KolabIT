@@ -137,10 +137,10 @@ nano .env  # or use your preferred editor (vim, code, etc.)
 **Update these critical values in `.env`:**
 ```env
 # Database - UPDATE THIS
-DATABASE_URL="postgresql://kolabit_user:your_secure_password_here@localhost:5432/kolabit_dev?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kolabit"
 
 # JWT Secret - CHANGE THIS to a random string
-JWT_SECRET="generate-a-random-secret-key-here-use-openssl-rand-base64-32"
+JWT_SECRET="752af32294d9b3bf1733d2fd39c4ce5247b342b587b79081143b399aa7bfe034f1c429ee192b3e723301add0a3126c113a9a6f4fa3b087035ed0d6885e14c969"
 JWT_EXPIRES_IN="7d"
 
 # Password Hashing
