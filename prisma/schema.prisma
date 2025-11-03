@@ -11,34 +11,34 @@ model User {
   id                String           @id @default(cuid())
   email             String           @unique
   password          String
-  firstName         String
-  lastName          String
-  rollNumber        String?          @unique
+  firstName         String           @map("firstname")
+  lastName          String           @map("lastname")
+  rollNumber        String?          @unique @map("rollnumber")
   department        String?
   year              Int?
   semester          Int?
   bio               String?
   avatar            String?
-  isVerified        Boolean          @default(false)
-  verificationToken String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  isVerified        Boolean          @default(false) @map("isverified")
+  verificationToken String?          @map("verificationtoken")
+  resetToken        String?          @map("resettoken")
+  resetTokenExpiry  DateTime?        @map("resettokenexpiry")
+  createdAt         DateTime         @default(now()) @map("createdat")
+  updatedAt         DateTime         @updatedAt @map("updatedat")
   comments          Comment[]
   joinRequests      JoinRequest[]
   likes             Like[]
-  receivedMessages  Message[]        @relation("MessageReceiver")
-  sentMessages      Message[]        @relation("MessageSender")
+  receivedMessages  Message[]        @relation("MessageReceiver") @map("received_messages")
+  sentMessages      Message[]        @relation("MessageSender") @map("sent_messages")
   notifications     Notification[]
   posts             Post[]
-  projectMembers    ProjectMember[]
-  ownedProjects     Project[]        @relation("ProjectOwner")
-  resourceRatings   ResourceRating[]
+  projectMembers    ProjectMember[]  @map("project_members")
+  ownedProjects     Project[]        @relation("ProjectOwner") @map("owned_projects")
+  resourceRatings   ResourceRating[] @map("resource_ratings")
   resources         Resource[]
-  assignedTasks     Task[]           @relation("TaskAssignee")
-  userBadges        UserBadge[]
-  userSkills        UserSkill[]
+  assignedTasks     Task[]           @relation("TaskAssignee") @map("assigned_tasks")
+  userBadges        UserBadge[]      @map("user_badges")
+  userSkills        UserSkill[]      @map("user_skills")
 
   @@map("users")
 }
@@ -76,14 +76,14 @@ model Project {
   description    String
   status         String
   type           String
-  maxMembers     Int?
-  startDate      DateTime?
-  endDate        DateTime?
-  githubUrl      String?
-  liveUrl        String?
-  ownerId        String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  maxMembers     Int?             @map("maxmembers")
+  startDate      DateTime?        @map("startdate")
+  endDate        DateTime?        @map("enddate")
+  githubUrl      String?         @map("githuburl")
+  liveUrl        String?         @map("liveurl")
+  ownerId        String          @map("ownerid")
+  createdAt      DateTime        @default(now()) @map("createdat")
+  updatedAt      DateTime        @updatedAt @map("updatedat")
   joinRequests   JoinRequest[]
   members        ProjectMember[]
   requiredSkills ProjectSkill[]
@@ -250,12 +250,12 @@ model Task {
   description String?
   status      String
   priority    String
-  assigneeId  String?
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId  String?         @map("assigneeid")
+  dueDate     DateTime?       @map("duedate")
+  createdAt   DateTime        @default(now()) @map("createdat")
+  updatedAt   DateTime        @updatedAt @map("updatedat")
+  assignee    User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("tasks")
 }
@@ -263,12 +263,12 @@ model Task {
 model Message {
   id         String   @id @default(cuid())
   content    String
-  senderId   String
-  receiverId String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  sender     User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId   String          @map("senderid")
+  receiverId String          @map("receiverid")
+  isRead     Boolean         @default(false) @map("isread")
+  createdAt  DateTime        @default(now()) @map("createdat")
+  receiver   User           @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User           @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("messages")
 }
