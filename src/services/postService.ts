@@ -18,24 +18,24 @@ export class PostService {
     const post = await prisma.post.create({
       data: {
         ...postData,
-        authorId,
+        author_id: authorId,
       },
       include: {
         author: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         comments: {
@@ -44,21 +44,21 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
-          orderBy: { createdAt: 'asc' },
+          orderBy: { created_at: 'asc' },
         },
         likes: {
           include: {
@@ -66,17 +66,17 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -90,23 +90,23 @@ export class PostService {
       content: post.content,
       type: post.type as 'DISCUSSION' | 'ANNOUNCEMENT' | 'HELP' | 'SHOWCASE',
       tags: post.tags,
-      authorId: post.authorId,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
+      authorId: post.author_id,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
       author: post.author as any,
       comments: post.comments.map(comment => ({
         id: comment.id,
         content: comment.content,
-        postId: comment.postId,
-        authorId: comment.authorId,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
+        postId: comment.post_id,
+        authorId: comment.author_id,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
         author: comment.author as any,
       })),
       likes: post.likes.map(like => ({
         id: like.id,
-        postId: like.postId,
-        userId: like.userId,
+        postId: like.post_id,
+        userId: like.user_id,
         user: like.user as any,
       })),
     };
@@ -151,7 +151,11 @@ export class PostService {
 
     // Build orderBy clause
     const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
+    const sortByMap: any = {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    };
+    orderBy[sortByMap[sortBy] || sortBy] = sortOrder;
 
     // Get posts and total count
     const [posts, total] = await Promise.all([
@@ -162,17 +166,17 @@ export class PostService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
-              rollNumber: true,
+              first_name: true,
+              last_name: true,
+              roll_number: true,
               department: true,
               year: true,
               semester: true,
               bio: true,
               avatar: true,
-              isVerified: true,
-              createdAt: true,
-              updatedAt: true,
+              is_verified: true,
+              created_at: true,
+              updated_at: true,
             },
           },
           comments: {
@@ -181,21 +185,21 @@ export class PostService {
                 select: {
                   id: true,
                   email: true,
-                  firstName: true,
-                  lastName: true,
-                  rollNumber: true,
+                  first_name: true,
+                  last_name: true,
+                  roll_number: true,
                   department: true,
                   year: true,
                   semester: true,
                   bio: true,
                   avatar: true,
-                  isVerified: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  is_verified: true,
+                  created_at: true,
+                  updated_at: true,
                 },
               },
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { created_at: 'asc' },
           },
           likes: {
             include: {
@@ -203,17 +207,17 @@ export class PostService {
                 select: {
                   id: true,
                   email: true,
-                  firstName: true,
-                  lastName: true,
-                  rollNumber: true,
+                  first_name: true,
+                  last_name: true,
+                  roll_number: true,
                   department: true,
                   year: true,
                   semester: true,
                   bio: true,
                   avatar: true,
-                  isVerified: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  is_verified: true,
+                  created_at: true,
+                  updated_at: true,
                 },
               },
             },
@@ -235,23 +239,23 @@ export class PostService {
         content: post.content,
         type: post.type as 'DISCUSSION' | 'ANNOUNCEMENT' | 'HELP' | 'SHOWCASE',
         tags: post.tags,
-        authorId: post.authorId,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
+        authorId: post.author_id,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
         author: post.author as any,
         comments: post.comments.map(comment => ({
           id: comment.id,
           content: comment.content,
-          postId: comment.postId,
-          authorId: comment.authorId,
-          createdAt: comment.createdAt,
-          updatedAt: comment.updatedAt,
+          postId: comment.post_id,
+          authorId: comment.author_id,
+          createdAt: comment.created_at,
+          updatedAt: comment.updated_at,
           author: comment.author as any,
         })),
         likes: post.likes.map(like => ({
           id: like.id,
-          postId: like.postId,
-          userId: like.userId,
+          postId: like.post_id,
+          userId: like.user_id,
           user: like.user as any,
         })),
       })),
@@ -277,17 +281,17 @@ export class PostService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         comments: {
@@ -296,21 +300,21 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
-          orderBy: { createdAt: 'asc' },
+          orderBy: { created_at: 'asc' },
         },
         likes: {
           include: {
@@ -318,17 +322,17 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -346,23 +350,23 @@ export class PostService {
       content: post.content,
       type: post.type as 'DISCUSSION' | 'ANNOUNCEMENT' | 'HELP' | 'SHOWCASE',
       tags: post.tags,
-      authorId: post.authorId,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
+      authorId: post.author_id,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
       author: post.author as any,
       comments: post.comments.map(comment => ({
         id: comment.id,
         content: comment.content,
-        postId: comment.postId,
-        authorId: comment.authorId,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
+        postId: comment.post_id,
+        authorId: comment.author_id,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
         author: comment.author as any,
       })),
       likes: post.likes.map(like => ({
         id: like.id,
-        postId: like.postId,
-        userId: like.userId,
+        postId: like.post_id,
+        userId: like.user_id,
         user: like.user as any,
       })),
     };
@@ -385,7 +389,7 @@ export class PostService {
       throw new Error('Post not found');
     }
 
-    if (post.authorId !== userId) {
+    if (post.author_id !== userId) {
       throw new Error('Only post author can update the post');
     }
 
@@ -397,17 +401,17 @@ export class PostService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         comments: {
@@ -416,21 +420,21 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
-          orderBy: { createdAt: 'asc' },
+          orderBy: { created_at: 'asc' },
         },
         likes: {
           include: {
@@ -438,17 +442,17 @@ export class PostService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -462,23 +466,23 @@ export class PostService {
       content: updatedPost.content,
       type: updatedPost.type as 'DISCUSSION' | 'ANNOUNCEMENT' | 'HELP' | 'SHOWCASE',
       tags: updatedPost.tags,
-      authorId: updatedPost.authorId,
-      createdAt: updatedPost.createdAt,
-      updatedAt: updatedPost.updatedAt,
+      authorId: updatedPost.author_id,
+      createdAt: updatedPost.created_at,
+      updatedAt: updatedPost.updated_at,
       author: updatedPost.author as any,
       comments: updatedPost.comments.map(comment => ({
         id: comment.id,
         content: comment.content,
-        postId: comment.postId,
-        authorId: comment.authorId,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
+        postId: comment.post_id,
+        authorId: comment.author_id,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
         author: comment.author as any,
       })),
       likes: updatedPost.likes.map(like => ({
         id: like.id,
-        postId: like.postId,
-        userId: like.userId,
+        postId: like.post_id,
+        userId: like.user_id,
         user: like.user as any,
       })),
     };
@@ -497,7 +501,7 @@ export class PostService {
       throw new Error('Post not found');
     }
 
-    if (post.authorId !== userId) {
+    if (post.author_id !== userId) {
       throw new Error('Only post author can delete the post');
     }
 
@@ -528,25 +532,25 @@ export class PostService {
     const comment = await prisma.comment.create({
       data: {
         ...commentData,
-        postId,
-        authorId,
+        post_id: postId,
+        author_id: authorId,
       },
       include: {
         author: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
@@ -555,10 +559,10 @@ export class PostService {
     return {
       id: comment.id,
       content: comment.content,
-      postId: comment.postId,
-      authorId: comment.authorId,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
+      postId: comment.post_id,
+      authorId: comment.author_id,
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at,
       author: comment.author as any,
     };
   }
@@ -581,11 +585,11 @@ export class PostService {
       throw new Error('Comment not found');
     }
 
-    if (comment.postId !== postId) {
+    if (comment.post_id !== postId) {
       throw new Error('Comment does not belong to this post');
     }
 
-    if (comment.authorId !== userId) {
+    if (comment.author_id !== userId) {
       throw new Error('Only comment author can update the comment');
     }
 
@@ -597,17 +601,17 @@ export class PostService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
@@ -616,10 +620,10 @@ export class PostService {
     return {
       id: updatedComment.id,
       content: updatedComment.content,
-      postId: updatedComment.postId,
-      authorId: updatedComment.authorId,
-      createdAt: updatedComment.createdAt,
-      updatedAt: updatedComment.updatedAt,
+      postId: updatedComment.post_id,
+      authorId: updatedComment.author_id,
+      createdAt: updatedComment.created_at,
+      updatedAt: updatedComment.updated_at,
       author: updatedComment.author as any,
     };
   }
@@ -641,11 +645,11 @@ export class PostService {
       throw new Error('Comment not found');
     }
 
-    if (comment.postId !== postId) {
+    if (comment.post_id !== postId) {
       throw new Error('Comment does not belong to this post');
     }
 
-    if (comment.authorId !== userId) {
+    if (comment.author_id !== userId) {
       throw new Error('Only comment author can delete the comment');
     }
 
@@ -672,9 +676,9 @@ export class PostService {
     // Check if user has already liked the post
     const existingLike = await prisma.like.findUnique({
       where: {
-        postId_userId: {
-          postId,
-          userId,
+        post_id_user_id: {
+          post_id: postId,
+          user_id: userId,
         },
       },
     });
@@ -683,9 +687,9 @@ export class PostService {
       // Unlike the post
       await prisma.like.delete({
         where: {
-          postId_userId: {
-            postId,
-            userId,
+          post_id_user_id: {
+            post_id: postId,
+            user_id: userId,
           },
         },
       });
@@ -695,8 +699,8 @@ export class PostService {
       // Like the post
       await prisma.like.create({
         data: {
-          postId,
-          userId,
+          post_id: postId,
+          user_id: userId,
         },
       });
 

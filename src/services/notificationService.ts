@@ -14,12 +14,12 @@ export class NotificationService {
 
     const [notifications, total] = await Promise.all([
       prisma.notification.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
+        where: { user_id: userId },
+        orderBy: { created_at: 'desc' },
         skip,
         take: limit,
       }),
-      prisma.notification.count({ where: { userId } }),
+      prisma.notification.count({ where: { user_id: userId } }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -27,13 +27,13 @@ export class NotificationService {
     return {
       data: notifications.map(notification => ({
         id: notification.id,
-        userId: notification.userId,
+        userId: notification.user_id,
         type: notification.type,
         title: notification.title,
         message: notification.message,
-        isRead: notification.isRead,
+        isRead: notification.is_read,
         data: notification.data,
-        createdAt: notification.createdAt,
+        createdAt: notification.created_at,
       })),
       pagination: {
         page,
@@ -56,13 +56,13 @@ export class NotificationService {
 
     return {
       id: notification.id,
-      userId: notification.userId,
+      userId: notification.user_id,
       type: notification.type,
       title: notification.title,
       message: notification.message,
-      isRead: notification.isRead,
+      isRead: notification.is_read,
       data: notification.data,
-      createdAt: notification.createdAt,
+      createdAt: notification.created_at,
     };
   }
 
@@ -78,13 +78,13 @@ export class NotificationService {
       throw new Error('Notification not found');
     }
 
-    if (notification.userId !== userId) {
+    if (notification.user_id !== userId) {
       throw new Error('Unauthorized to modify this notification');
     }
 
     await prisma.notification.update({
       where: { id: notificationId },
-      data: { isRead: true },
+      data: { is_read: true },
     });
 
     return { message: 'Notification marked as read' };
@@ -95,8 +95,8 @@ export class NotificationService {
    */
   static async markAllAsRead(userId: string): Promise<{ message: string }> {
     await prisma.notification.updateMany({
-      where: { userId, isRead: false },
-      data: { isRead: true },
+      where: { user_id: userId, is_read: false },
+      data: { is_read: true },
     });
 
     return { message: 'All notifications marked as read' };
@@ -114,7 +114,7 @@ export class NotificationService {
       throw new Error('Notification not found');
     }
 
-    if (notification.userId !== userId) {
+    if (notification.user_id !== userId) {
       throw new Error('Unauthorized to delete this notification');
     }
 
@@ -130,7 +130,7 @@ export class NotificationService {
    */
   static async getUnreadCount(userId: string): Promise<{ count: number }> {
     const count = await prisma.notification.count({
-      where: { userId, isRead: false },
+      where: { user_id: userId, is_read: false },
     });
 
     return { count };

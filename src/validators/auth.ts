@@ -12,17 +12,17 @@ export const registerValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
   
-  body('firstName')
+  body('first_name')
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('First name must be between 2 and 50 characters'),
   
-  body('lastName')
+  body('last_name')
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Last name must be between 2 and 50 characters'),
   
-  body('rollNumber')
+  body('roll_number')
     .optional()
     .trim()
     .isLength({ min: 3, max: 20 })

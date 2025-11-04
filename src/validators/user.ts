@@ -1,19 +1,19 @@
 import { body, query } from 'express-validator';
 
 export const updateProfileValidation = [
-  body('firstName')
+  body('first_name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('First name must be between 2 and 50 characters'),
   
-  body('lastName')
+  body('last_name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Last name must be between 2 and 50 characters'),
   
-  body('rollNumber')
+  body('roll_number')
     .optional()
     .trim()
     .isLength({ min: 3, max: 20 })
@@ -77,7 +77,7 @@ export const searchUsersValidation = [
 ];
 
 export const addUserSkillValidation = [
-  body('skillId')
+  body('skill_id')
     .isString()
     .trim()
     .isLength({ min: 20, max: 30 })
@@ -87,7 +87,7 @@ export const addUserSkillValidation = [
     .isIn(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'])
     .withMessage('Proficiency must be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT'),
   
-  body('yearsOfExp')
+  body('years_of_exp')
     .optional()
     .isInt({ min: 0, max: 50 })
     .withMessage('Years of experience must be between 0 and 50'),

@@ -15,7 +15,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   try {
     const decoded = JWTUtils.verifyToken(token);
     req.user = {
-      id: decoded.userId,
+      id: decoded.user_id,
       email: decoded.email,
       role: decoded.role,
     };
@@ -38,7 +38,7 @@ export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction
   try {
     const decoded = JWTUtils.verifyToken(token);
     req.user = {
-      id: decoded.userId,
+      id: decoded.user_id,
       email: decoded.email,
       role: decoded.role,
     };
@@ -46,7 +46,7 @@ export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction
     // Ignore invalid tokens for optional auth
     (req as any).user = undefined;
   }
-  
+
   next();
 };
 

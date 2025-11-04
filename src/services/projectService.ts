@@ -47,15 +47,15 @@ export class ProjectService {
         status: 'PLANNING',
         description: projectData.description,
         type: projectData.type,
-        maxMembers: projectData.maxMembers,
-        startDate: projectData.startDate,
-        endDate: projectData.endDate,
-        githubUrl: projectData.githubUrl,
-        liveUrl: projectData.liveUrl,
-        ownerId,
-        requiredSkills: {
+        max_members: projectData.maxMembers,
+        start_date: projectData.startDate,
+        end_date: projectData.endDate,
+        github_url: projectData.githubUrl,
+        live_url: projectData.liveUrl,
+        owner_id: ownerId,
+        required_skills: {
           create: projectData.requiredSkills.map(skillId => ({
-            skillId,
+            skill_id: skillId,
             required: true,
           })),
         },
@@ -65,17 +65,17 @@ export class ProjectService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         members: {
@@ -84,22 +84,22 @@ export class ProjectService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
         },
-        requiredSkills: {
+        required_skills: {
           include: {
             skill: true,
           },
@@ -109,10 +109,10 @@ export class ProjectService {
     });
 
     // Add owner as project member
-    await prisma.projectMember.create({
+    await prisma.project_member.create({
       data: {
-        projectId: project.id,
-        userId: ownerId,
+        project_id: project.id,
+        user_id: ownerId,
         role: 'MAINTAINER',
       },
     });
@@ -123,27 +123,27 @@ export class ProjectService {
       description: project.description,
       status: project.status as 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED',
       type: project.type as 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP',
-  maxMembers: project.maxMembers ?? undefined,
-  startDate: project.startDate ?? undefined,
-  endDate: project.endDate ?? undefined,
-  githubUrl: project.githubUrl ?? undefined,
-  liveUrl: project.liveUrl ?? undefined,
-      ownerId: project.ownerId,
-      createdAt: project.createdAt,
-      updatedAt: project.updatedAt,
-  owner: (project as any).owner as any,
-  members: (project as any).members.map((member: any) => ({
+      maxMembers: project.max_members ?? undefined,
+      startDate: project.start_date ?? undefined,
+      endDate: project.end_date ?? undefined,
+      githubUrl: project.github_url ?? undefined,
+      liveUrl: project.live_url ?? undefined,
+      ownerId: project.owner_id,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+      owner: (project as any).owner as any,
+      members: (project as any).members.map((member: any) => ({
         id: member.id,
-        projectId: member.projectId,
-        userId: member.userId,
+        projectId: member.project_id,
+        userId: member.user_id,
         role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-        joinedAt: member.joinedAt,
+        joinedAt: member.joined_at,
         user: member.user as any,
       })),
-  requiredSkills: (project as any).requiredSkills.map((ps: any) => ({
+      requiredSkills: (project as any).required_skills.map((ps: any) => ({
         id: ps.id,
-        projectId: ps.projectId,
-        skillId: ps.skillId,
+        projectId: ps.project_id,
+        skillId: ps.skill_id,
         required: ps.required,
         skill: {
           id: ps.skill.id,
@@ -151,20 +151,20 @@ export class ProjectService {
           category: ps.skill.category,
           description: ps.skill.description ?? undefined,
           icon: ps.skill.icon ?? undefined,
-          createdAt: ps.skill.createdAt,
+          createdAt: ps.skill.created_at,
         },
       })),
-  tasks: (project as any).tasks.map((task: any) => ({
+      tasks: (project as any).tasks.map((task: any) => ({
         id: task.id,
-        projectId: task.projectId,
+        projectId: task.project_id,
         title: task.title,
-  description: task.description ?? undefined,
+        description: task.description ?? undefined,
         status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
         priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-  assigneeId: task.assigneeId ?? undefined,
-  dueDate: task.dueDate ?? undefined,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
+        assigneeId: task.assignee_id ?? undefined,
+        dueDate: task.due_date ?? undefined,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
       })),
     };
   }
@@ -205,16 +205,22 @@ export class ProjectService {
     }
 
     if (skills.length > 0) {
-      where.requiredSkills = {
+      where.required_skills = {
         some: {
-          skillId: { in: skills },
+          skill_id: { in: skills },
         },
       };
     }
 
     // Build orderBy clause
     const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
+    const sortByMap: any = {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      startDate: 'start_date',
+      endDate: 'end_date',
+    };
+    orderBy[sortByMap[sortBy] || sortBy] = sortOrder;
 
     // Get projects and total count
     const [projects, total] = await Promise.all([
@@ -225,17 +231,17 @@ export class ProjectService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
-              rollNumber: true,
+              first_name: true,
+              last_name: true,
+              roll_number: true,
               department: true,
               year: true,
               semester: true,
               bio: true,
               avatar: true,
-              isVerified: true,
-              createdAt: true,
-              updatedAt: true,
+              is_verified: true,
+              created_at: true,
+              updated_at: true,
             },
           },
           members: {
@@ -244,22 +250,22 @@ export class ProjectService {
                 select: {
                   id: true,
                   email: true,
-                  firstName: true,
-                  lastName: true,
-                  rollNumber: true,
+                  first_name: true,
+                  last_name: true,
+                  roll_number: true,
                   department: true,
                   year: true,
                   semester: true,
                   bio: true,
                   avatar: true,
-                  isVerified: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  is_verified: true,
+                  created_at: true,
+                  updated_at: true,
                 },
               },
             },
           },
-          requiredSkills: {
+          required_skills: {
             include: {
               skill: true,
             },
@@ -279,30 +285,30 @@ export class ProjectService {
       data: projects.map(project => ({
         id: project.id,
         title: project.title,
-  description: project.description ?? undefined,
+        description: project.description ?? undefined,
         status: project.status as 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED',
         type: project.type as 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP',
-  maxMembers: project.maxMembers ?? undefined,
-  startDate: project.startDate ?? undefined,
-  endDate: project.endDate ?? undefined,
-  githubUrl: project.githubUrl ?? undefined,
-  liveUrl: project.liveUrl ?? undefined,
-        ownerId: project.ownerId,
-        createdAt: project.createdAt,
-        updatedAt: project.updatedAt,
+        maxMembers: project.max_members ?? undefined,
+        startDate: project.start_date ?? undefined,
+        endDate: project.end_date ?? undefined,
+        githubUrl: project.github_url ?? undefined,
+        liveUrl: project.live_url ?? undefined,
+        ownerId: project.owner_id,
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
         owner: project.owner as any,
         members: project.members.map(member => ({
           id: member.id,
-          projectId: member.projectId,
-          userId: member.userId,
+          projectId: member.project_id,
+          userId: member.user_id,
           role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-          joinedAt: member.joinedAt,
+          joinedAt: member.joined_at,
           user: member.user as any,
         })),
-  requiredSkills: (project as any).requiredSkills.map((ps: any) => ({
+        requiredSkills: (project as any).required_skills.map((ps: any) => ({
           id: ps.id,
-          projectId: ps.projectId,
-          skillId: ps.skillId,
+          projectId: ps.project_id,
+          skillId: ps.skill_id,
           required: ps.required,
           skill: {
             id: ps.skill.id,
@@ -310,20 +316,20 @@ export class ProjectService {
             category: ps.skill.category,
             description: ps.skill.description ?? undefined,
             icon: ps.skill.icon ?? undefined,
-            createdAt: ps.skill.createdAt,
+            createdAt: ps.skill.created_at,
           },
         })),
-  tasks: (project as any).tasks.map((task: any) => ({
+        tasks: (project as any).tasks.map((task: any) => ({
           id: task.id,
-          projectId: task.projectId,
+          projectId: task.project_id,
           title: task.title,
           description: task.description ?? undefined,
           status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
           priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-          assigneeId: task.assigneeId ?? undefined,
-          dueDate: task.dueDate ?? undefined,
-          createdAt: task.createdAt,
-          updatedAt: task.updatedAt,
+          assigneeId: task.assignee_id ?? undefined,
+          dueDate: task.due_date ?? undefined,
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
         })),
       })),
       pagination: {
@@ -348,17 +354,17 @@ export class ProjectService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         members: {
@@ -367,22 +373,22 @@ export class ProjectService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
         },
-        requiredSkills: {
+        required_skills: {
           include: {
             skill: true,
           },
@@ -393,17 +399,17 @@ export class ProjectService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -418,30 +424,30 @@ export class ProjectService {
     return {
       id: project.id,
       title: project.title,
-  description: project.description ?? undefined,
+      description: project.description ?? undefined,
       status: project.status as 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED',
       type: project.type as 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP',
-  maxMembers: project.maxMembers ?? undefined,
-  startDate: project.startDate ?? undefined,
-  endDate: project.endDate ?? undefined,
-  githubUrl: project.githubUrl ?? undefined,
-  liveUrl: project.liveUrl ?? undefined,
-      ownerId: project.ownerId,
-      createdAt: project.createdAt,
-      updatedAt: project.updatedAt,
+      maxMembers: project.max_members ?? undefined,
+      startDate: project.start_date ?? undefined,
+      endDate: project.end_date ?? undefined,
+      githubUrl: project.github_url ?? undefined,
+      liveUrl: project.live_url ?? undefined,
+      ownerId: project.owner_id,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
       owner: project.owner as any,
       members: project.members.map(member => ({
         id: member.id,
-        projectId: member.projectId,
-        userId: member.userId,
+        projectId: member.project_id,
+        userId: member.user_id,
         role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-        joinedAt: member.joinedAt,
+        joinedAt: member.joined_at,
         user: member.user as any,
       })),
-  requiredSkills: (project as any).requiredSkills.map((ps: any) => ({
+      requiredSkills: (project as any).required_skills.map((ps: any) => ({
         id: ps.id,
-        projectId: ps.projectId,
-        skillId: ps.skillId,
+        projectId: ps.project_id,
+        skillId: ps.skill_id,
         required: ps.required,
         skill: {
           id: ps.skill.id,
@@ -449,20 +455,20 @@ export class ProjectService {
           category: ps.skill.category,
           description: ps.skill.description,
           icon: ps.skill.icon,
-          createdAt: ps.skill.createdAt,
+          createdAt: ps.skill.created_at,
         },
       })),
-  tasks: (project as any).tasks.map((task: any) => ({
+      tasks: (project as any).tasks.map((task: any) => ({
         id: task.id,
-        projectId: task.projectId,
+        projectId: task.project_id,
         title: task.title,
         description: task.description,
         status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
         priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-        assigneeId: task.assigneeId,
-        dueDate: task.dueDate,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
+        assigneeId: task.assignee_id,
+        dueDate: task.due_date,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
         assignee: task.assignee as any,
       })),
     };
@@ -485,7 +491,7 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
-    if (project.ownerId !== userId) {
+    if (project.owner_id !== userId) {
       throw new Error('Only project owner can update the project');
     }
 
@@ -497,17 +503,17 @@ export class ProjectService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         members: {
@@ -516,22 +522,22 @@ export class ProjectService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
         },
-        requiredSkills: {
+        required_skills: {
           include: {
             skill: true,
           },
@@ -546,27 +552,27 @@ export class ProjectService {
       description: updatedProject.description,
       status: updatedProject.status as 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED',
       type: updatedProject.type as 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP',
-  maxMembers: updatedProject.maxMembers ?? undefined,
-  startDate: updatedProject.startDate ?? undefined,
-  endDate: updatedProject.endDate ?? undefined,
-  githubUrl: updatedProject.githubUrl ?? undefined,
-  liveUrl: updatedProject.liveUrl ?? undefined,
-      ownerId: updatedProject.ownerId,
-      createdAt: updatedProject.createdAt,
-      updatedAt: updatedProject.updatedAt,
+      maxMembers: updatedProject.max_members ?? undefined,
+      startDate: updatedProject.start_date ?? undefined,
+      endDate: updatedProject.end_date ?? undefined,
+      githubUrl: updatedProject.github_url ?? undefined,
+      liveUrl: updatedProject.live_url ?? undefined,
+      ownerId: updatedProject.owner_id,
+      createdAt: updatedProject.created_at,
+      updatedAt: updatedProject.updated_at,
       owner: updatedProject.owner as any,
       members: updatedProject.members.map(member => ({
         id: member.id,
-        projectId: member.projectId,
-        userId: member.userId,
+        projectId: member.project_id,
+        userId: member.user_id,
         role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-        joinedAt: member.joinedAt,
+        joinedAt: member.joined_at,
         user: member.user as any,
       })),
-  requiredSkills: (updatedProject as any).requiredSkills.map((ps: any) => ({
+      requiredSkills: (updatedProject as any).required_skills.map((ps: any) => ({
         id: ps.id,
-        projectId: ps.projectId,
-        skillId: ps.skillId,
+        projectId: ps.project_id,
+        skillId: ps.skill_id,
         required: ps.required,
         skill: {
           id: ps.skill.id,
@@ -574,20 +580,20 @@ export class ProjectService {
           category: ps.skill.category,
           description: ps.skill.description ?? undefined,
           icon: ps.skill.icon ?? undefined,
-          createdAt: ps.skill.createdAt,
+          createdAt: ps.skill.created_at,
         },
       })),
-  tasks: (updatedProject as any).tasks.map((task: any) => ({
+      tasks: (updatedProject as any).tasks.map((task: any) => ({
         id: task.id,
-        projectId: task.projectId,
+        projectId: task.project_id,
         title: task.title,
         description: task.description ?? undefined,
         status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
         priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-        assigneeId: task.assigneeId ?? undefined,
-        dueDate: task.dueDate ?? undefined,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
+        assigneeId: task.assignee_id ?? undefined,
+        dueDate: task.due_date ?? undefined,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
       })),
     };
   }
@@ -605,7 +611,7 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
-    if (project.ownerId !== userId) {
+    if (project.owner_id !== userId) {
       throw new Error('Only project owner can delete the project');
     }
 
@@ -634,11 +640,11 @@ export class ProjectService {
     }
 
     // Check if user is already a member
-    const existingMember = await prisma.projectMember.findUnique({
+    const existingMember = await prisma.project_member.findUnique({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
+        project_id_user_id: {
+          project_id: projectId,
+          user_id: userId,
         },
       },
     });
@@ -648,16 +654,16 @@ export class ProjectService {
     }
 
     // Check if user is the owner
-    if (project.ownerId === userId) {
+    if (project.owner_id === userId) {
       throw new Error('Project owner cannot request to join their own project');
     }
 
     // Check if there's already a pending request
-    const existingRequest = await prisma.joinRequest.findUnique({
+    const existingRequest = await prisma.join_request.findUnique({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
+        project_id_user_id: {
+          project_id: projectId,
+          user_id: userId,
         },
       },
     });
@@ -672,21 +678,21 @@ export class ProjectService {
     }
 
     // Create or update join request
-    const joinRequest = await prisma.joinRequest.upsert({
+    const joinRequest = await prisma.join_request.upsert({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
+        project_id_user_id: {
+          project_id: projectId,
+          user_id: userId,
         },
       },
       update: {
         message: requestData.message,
         status: 'PENDING',
-        updatedAt: new Date(),
+        updated_at: new Date(),
       },
       create: {
-        projectId,
-        userId,
+        project_id: projectId,
+        user_id: userId,
         message: requestData.message,
         status: 'PENDING',
       },
@@ -695,17 +701,17 @@ export class ProjectService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         project: {
@@ -714,17 +720,17 @@ export class ProjectService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
             members: {
@@ -733,22 +739,22 @@ export class ProjectService {
                   select: {
                     id: true,
                     email: true,
-                    firstName: true,
-                    lastName: true,
-                    rollNumber: true,
+                    first_name: true,
+                    last_name: true,
+                    roll_number: true,
                     department: true,
                     year: true,
                     semester: true,
                     bio: true,
                     avatar: true,
-                    isVerified: true,
-                    createdAt: true,
-                    updatedAt: true,
+                    is_verified: true,
+                    created_at: true,
+                    updated_at: true,
                   },
                 },
               },
             },
-            requiredSkills: {
+            required_skills: {
               include: {
                 skill: true,
               },
@@ -761,40 +767,40 @@ export class ProjectService {
 
     return {
       id: joinRequest.id,
-      projectId: joinRequest.projectId,
-      userId: joinRequest.userId,
+      projectId: joinRequest.project_id,
+      userId: joinRequest.user_id,
       message: joinRequest.message ?? undefined,
       status: joinRequest.status as 'PENDING' | 'ACCEPTED' | 'REJECTED',
-      createdAt: joinRequest.createdAt,
-      updatedAt: joinRequest.updatedAt,
+      createdAt: joinRequest.created_at,
+      updatedAt: joinRequest.updated_at,
       user: joinRequest.user as any,
       project: {
-  id: joinRequest.project.id,
-  title: joinRequest.project.title ?? undefined,
-  description: joinRequest.project.description ?? undefined,
+        id: joinRequest.project.id,
+        title: joinRequest.project.title ?? undefined,
+        description: joinRequest.project.description ?? undefined,
         status: joinRequest.project.status as 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED',
         type: joinRequest.project.type as 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP',
-  maxMembers: joinRequest.project.maxMembers ?? undefined,
-  startDate: joinRequest.project.startDate ?? undefined,
-  endDate: joinRequest.project.endDate ?? undefined,
-  githubUrl: joinRequest.project.githubUrl ?? undefined,
-  liveUrl: joinRequest.project.liveUrl ?? undefined,
-        ownerId: joinRequest.project.ownerId,
-        createdAt: joinRequest.project.createdAt,
-        updatedAt: joinRequest.project.updatedAt,
+        maxMembers: joinRequest.project.max_members ?? undefined,
+        startDate: joinRequest.project.start_date ?? undefined,
+        endDate: joinRequest.project.end_date ?? undefined,
+        githubUrl: joinRequest.project.github_url ?? undefined,
+        liveUrl: joinRequest.project.live_url ?? undefined,
+        ownerId: joinRequest.project.owner_id,
+        createdAt: joinRequest.project.created_at,
+        updatedAt: joinRequest.project.updated_at,
         owner: joinRequest.project.owner as any,
         members: joinRequest.project.members.map(member => ({
           id: member.id,
-          projectId: member.projectId,
-          userId: member.userId,
+          projectId: member.project_id,
+          userId: member.user_id,
           role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-          joinedAt: member.joinedAt,
+          joinedAt: member.joined_at,
           user: member.user as any,
         })),
-  requiredSkills: (joinRequest.project as any).requiredSkills.map((ps: any) => ({
+        requiredSkills: (joinRequest.project as any).required_skills.map((ps: any) => ({
           id: ps.id,
-          projectId: ps.projectId,
-          skillId: ps.skillId,
+          projectId: ps.project_id,
+          skillId: ps.skill_id,
           required: ps.required,
           skill: {
             id: ps.skill.id,
@@ -802,20 +808,20 @@ export class ProjectService {
             category: ps.skill.category,
             description: ps.skill.description,
             icon: ps.skill.icon,
-            createdAt: ps.skill.createdAt,
+            createdAt: ps.skill.created_at,
           },
         })),
-  tasks: (joinRequest.project as any).tasks.map((task: any) => ({
+        tasks: (joinRequest.project as any).tasks.map((task: any) => ({
           id: task.id,
-          projectId: task.projectId,
+          projectId: task.project_id,
           title: task.title,
           description: task.description,
           status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
           priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-          assigneeId: task.assigneeId,
-          dueDate: task.dueDate,
-          createdAt: task.createdAt,
-          updatedAt: task.updatedAt,
+          assigneeId: task.assignee_id,
+          dueDate: task.due_date,
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
         })),
       },
     };
@@ -839,12 +845,12 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
-    if (project.ownerId !== userId) {
+    if (project.owner_id !== userId) {
       throw new Error('Only project owner can accept/reject join requests');
     }
 
     // Check if join request exists
-    const joinRequest = await prisma.joinRequest.findUnique({
+    const joinRequest = await prisma.join_request.findUnique({
       where: { id: requestId },
     });
 
@@ -852,7 +858,7 @@ export class ProjectService {
       throw new Error('Join request not found');
     }
 
-    if (joinRequest.projectId !== projectId) {
+    if (joinRequest.project_id !== projectId) {
       throw new Error('Join request does not belong to this project');
     }
 
@@ -861,7 +867,7 @@ export class ProjectService {
     }
 
     // Update join request status
-    await prisma.joinRequest.update({
+    await prisma.join_request.update({
       where: { id: requestId },
       data: { status },
     });
@@ -869,20 +875,20 @@ export class ProjectService {
     // If accepted, add user to project members
     if (status === 'ACCEPTED') {
       // Check if project has reached max members
-      if (project.maxMembers) {
-        const memberCount = await prisma.projectMember.count({
-          where: { projectId },
+      if (project.max_members) {
+        const memberCount = await prisma.project_member.count({
+          where: { project_id: projectId },
         });
 
-        if (memberCount >= project.maxMembers) {
+        if (memberCount >= project.max_members) {
           throw new Error('Project has reached maximum number of members');
         }
       }
 
-      await prisma.projectMember.create({
+      await prisma.project_member.create({
         data: {
-          projectId,
-          userId: joinRequest.userId,
+          project_id: projectId,
+          user_id: joinRequest.user_id,
           role: 'MEMBER',
         },
       });
@@ -916,36 +922,36 @@ export class ProjectService {
       updatedAt: Date;
     };
   }>> {
-    const members = await prisma.projectMember.findMany({
-      where: { projectId },
+    const members = await prisma.project_member.findMany({
+      where: { project_id: projectId },
       include: {
         user: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
-      orderBy: { joinedAt: 'asc' },
+      orderBy: { joined_at: 'asc' },
     });
 
     return members.map(member => ({
       id: member.id,
-      projectId: member.projectId,
-      userId: member.userId,
+      projectId: member.project_id,
+      userId: member.user_id,
       role: member.role as 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER',
-      joinedAt: member.joinedAt,
+      joinedAt: member.joined_at,
       user: member.user as any,
     }));
   }
@@ -968,12 +974,12 @@ export class ProjectService {
     }
 
     // Check if user is a member or owner
-    const isOwner = project.ownerId === userId;
-    const isMember = await prisma.projectMember.findUnique({
+    const isOwner = project.owner_id === userId;
+    const isMember = await prisma.project_member.findUnique({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
+        project_id_user_id: {
+          project_id: projectId,
+          user_id: userId,
         },
       },
     });
@@ -993,46 +999,46 @@ export class ProjectService {
       }
 
       // Check if assignee is a project member
-      const assigneeMember = await prisma.projectMember.findUnique({
+      const assigneeMember = await prisma.project_member.findUnique({
         where: {
-          projectId_userId: {
-            projectId,
-            userId: taskData.assigneeId,
+          project_id_user_id: {
+            project_id: projectId,
+            user_id: taskData.assigneeId,
           },
         },
       });
 
-      if (!assigneeMember && project.ownerId !== taskData.assigneeId) {
+      if (!assigneeMember && project.owner_id !== taskData.assigneeId) {
         throw new Error('Assignee must be a project member');
       }
     }
 
     const task = await prisma.task.create({
       data: {
-        projectId,
+        project_id: projectId,
         title: taskData.title,
         description: taskData.description,
         status: 'TODO',
         priority: taskData.priority,
-            assigneeId: taskData.assigneeId ?? undefined,
-            dueDate: taskData.dueDate ?? undefined,
+        assignee_id: taskData.assigneeId ?? undefined,
+        due_date: taskData.dueDate ?? undefined,
       },
       include: {
         assignee: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
@@ -1040,15 +1046,15 @@ export class ProjectService {
 
     return {
       id: task.id,
-      projectId: task.projectId,
+      projectId: task.project_id,
       title: task.title,
-  description: task.description ?? undefined,
+      description: task.description ?? undefined,
       status: task.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
       priority: task.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-          assigneeId: task.assigneeId ?? undefined,
-  dueDate: task.dueDate ?? undefined,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
+      assigneeId: task.assignee_id ?? undefined,
+      dueDate: task.due_date ?? undefined,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
       assignee: task.assignee as any,
     };
   }
@@ -1071,7 +1077,7 @@ export class ProjectService {
       throw new Error('Task not found');
     }
 
-    if (task.projectId !== projectId) {
+    if (task.project_id !== projectId) {
       throw new Error('Task does not belong to this project');
     }
 
@@ -1084,12 +1090,12 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
-    const isOwner = project.ownerId === userId;
-    const isMember = await prisma.projectMember.findUnique({
+    const isOwner = project.owner_id === userId;
+    const isMember = await prisma.project_member.findUnique({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
+        project_id_user_id: {
+          project_id: projectId,
+          user_id: userId,
         },
       },
     });
@@ -1109,16 +1115,16 @@ export class ProjectService {
       }
 
       // Check if assignee is a project member
-      const assigneeMember = await prisma.projectMember.findUnique({
+      const assigneeMember = await prisma.project_member.findUnique({
         where: {
-          projectId_userId: {
-            projectId,
-            userId: updateData.assigneeId,
+          project_id_user_id: {
+            project_id: projectId,
+            user_id: updateData.assigneeId,
           },
         },
       });
 
-      if (!assigneeMember && project.ownerId !== updateData.assigneeId) {
+      if (!assigneeMember && project.owner_id !== updateData.assigneeId) {
         throw new Error('Assignee must be a project member');
       }
     }
@@ -1131,16 +1137,16 @@ export class ProjectService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
@@ -1148,15 +1154,15 @@ export class ProjectService {
 
     return {
       id: updatedTask.id,
-      projectId: updatedTask.projectId,
+      projectId: updatedTask.project_id,
       title: updatedTask.title,
       description: updatedTask.description ?? undefined,
       status: updatedTask.status as 'TODO' | 'IN_PROGRESS' | 'COMPLETED',
       priority: updatedTask.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-          assigneeId: updatedTask.assigneeId ?? undefined,
-      dueDate: updatedTask.dueDate ?? undefined,
-      createdAt: updatedTask.createdAt,
-      updatedAt: updatedTask.updatedAt,
+      assigneeId: updatedTask.assignee_id ?? undefined,
+      dueDate: updatedTask.due_date ?? undefined,
+      createdAt: updatedTask.created_at,
+      updatedAt: updatedTask.updated_at,
       assignee: (updatedTask as any).assignee as any,
     };
   }

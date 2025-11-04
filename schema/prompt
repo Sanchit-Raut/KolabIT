@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                  String            @id @default(cuid())
+  email               String            @unique
+  password            String
+  first_name          String
+  last_name           String
+  roll_number         String?           @unique
+  department          String?
+  year                Int?
+  semester            Int?
+  bio                 String?
+  avatar              String?
+  is_verified         Boolean           @default(false)
+  verification_token  String?
+  reset_token         String?
+  reset_token_expiry  DateTime?
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  comments            comment[]
+  join_requests       join_request[]
+  likes               like[]
+  received_messages   message[]         @relation("message_receiver")
+  sent_messages       message[]         @relation("message_sender")
+  notifications       notification[]
+  posts               post[]
+  project_members     project_member[]
+  owned_projects      project[]         @relation("project_owner")
+  resource_ratings    resource_rating[]
+  resources           resource[]
+  assigned_tasks      task[]            @relation("task_assignee")
+  user_badges         user_badge[]
+  user_skills         user_skill[]
+
+  @@map("users")
+}
+
+model skill {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  category        String
+  description     String?
+  icon            String?
+  created_at      DateTime        @default(now())
+  project_skills  project_skill[]
+  user_skills     user_skill[]
+
+  @@map("skills")
+}
+
+model user_skill {
+  id            String  @id @default(cuid())
+  user_id       String
+  skill_id      String
+  proficiency   String
+  years_of_exp  Int?
+  endorsements  Int     @default(0)
+  skill         skill   @relation(fields: [skill_id], references: [id])
+  user          user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, skill_id])
+  @@map("user_skills")
+}
+
+model project {
+  id               String           @id @default(cuid())
+  title            String
+  description      String
+  status           String
+  type             String
+  max_members      Int?
+  start_date       DateTime?
+  end_date         DateTime?
+  github_url       String?
+  live_url         String?
+  owner_id         String
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  join_requests    join_request[]
+  members          project_member[]
+  required_skills  project_skill[]
+  owner            user             @relation("project_owner", fields: [owner_id], references: [id])
+  tasks            task[]
+
+  @@map("projects")
+}
+
+model project_member {
+  id          String    @id @default(cuid())
+  project_id  String
+  user_id     String
+  role        String
+  joined_at   DateTime  @default(now())
+  project     project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, user_id])
+  @@map("project_members")
+}
+
+model project_skill {
+  id          String   @id @default(cuid())
+  project_id  String
+  skill_id    String
+  required    Boolean  @default(true)
+  project     project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  skill       skill    @relation(fields: [skill_id], references: [id])
+
+  @@unique([project_id, skill_id])
+  @@map("project_skills")
+}
+
+model resource {
+  id           String             @id @default(cuid())
+  title        String
+  description  String?
+  type         String
+  subject      String
+  semester     Int?
+  file_url     String?
+  file_name    String?
+  file_size    Int?
+  downloads    Int                @default(0)
+  uploader_id  String
+  created_at   DateTime           @default(now())
+  ratings      resource_rating[]
+  uploader     user               @relation(fields: [uploader_id], references: [id])
+
+  @@map("resources")
+}
+
+model resource_rating {
+  id           String     @id @default(cuid())
+  resource_id  String
+  user_id      String
+  rating       Int
+  review       String?
+  resource     resource   @relation(fields: [resource_id], references: [id], onDelete: Cascade)
+  user         user       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([resource_id, user_id])
+  @@map("resource_ratings")
+}
+
+model post {
+  id          String     @id @default(cuid())
+  title       String
+  content     String
+  type        String
+  tags        String[]
+  author_id   String
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  comments    comment[]
+  likes       like[]
+  author      user       @relation(fields: [author_id], references: [id])
+
+  @@map("posts")
+}
+
+model comment {
+  id          String    @id @default(cuid())
+  content     String
+  post_id     String
+  author_id   String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  author      user      @relation(fields: [author_id], references: [id])
+  post        post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model like {
+  id        String  @id @default(cuid())
+  post_id   String
+  user_id   String
+  post      post    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user      user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+  @@map("likes")
+}
+
+model badge {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  description   String
+  icon          String
+  category      String
+  criteria      String
+  user_badges   user_badge[]
+
+  @@map("badges")
+}
+
+model user_badge {
+  id         String    @id @default(cuid())
+  user_id    String
+  badge_id   String
+  earned_at  DateTime  @default(now())
+  badge      badge     @relation(fields: [badge_id], references: [id])
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, badge_id])
+  @@map("user_badges")
+}
+
+model notification {
+  id          String    @id @default(cuid())
+  user_id     String
+  type        String
+  title       String
+  message     String
+  is_read     Boolean   @default(false)
+  data        Json?
+  created_at  DateTime  @default(now())
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model join_request {
+  id          String    @id @default(cuid())
+  project_id  String
+  user_id     String
+  message     String?
+  status      String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  project     project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, user_id])
+  @@map("join_requests")
+}
+
+model task {
+  id           String    @id @default(cuid())
+  project_id   String
+  title        String
+  description  String?
+  status       String
+  priority     String
+  assignee_id  String?
+  due_date     DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  assignee     user?     @relation("task_assignee", fields: [assignee_id], references: [id])
+  project      project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model message {
+  id           String    @id @default(cuid())
+  content      String
+  sender_id    String
+  receiver_id  String
+  is_read      Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  receiver     user      @relation("message_receiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+  sender       user      @relation("message_sender", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+this is the prisma schema which i have used, now, the thing happened is that previously, all the column names and the table names used in this file were in camelCase. but the db stores it in lowercase so i made all col & table names in snake_case. 
+
+but the nextJs ypescript backend code which i have used have used column names in camel case so i have to make changes in all files. 
+
+now i'll give you step by step my each ts file and you have to change the column name occurances from camelCase to lower case. take the prisma code given above and work accordingly.
+
+remember, for all following prompts, only answer a single line statement and give the camelCase to snake_case changed code,
+
+and if it does not have any change, just give a single line "it dont have changes" and stop, dont give the same code back. i dont want longer risponce, just clean and simple
+
+if changes required, mention changes required for which attributes/ table name just list them in a single line, no big response and then give the camelCase to snake_case changed code
+
+REMEBER, DONT CHANGE METHOD NAMES AND ALL, IDENTIFY THE TABLE NAMES AND ATTRIBUTE NAMES USED AND CHANGE ONLY THEM FROM camelCase TO snake_case. 
+
+REMEMBER ALL THIS INFORMATION FOR ALL UPCOMING PROMPTS, GIVE ME COMPLETE CODE WITH CHANGES APPLIED.

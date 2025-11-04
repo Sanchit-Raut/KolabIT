@@ -29,25 +29,25 @@ export interface SuccessResponse<T> {
 export interface UserProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  rollNumber?: string;
+  first_name: string;
+  last_name: string;
+  roll_number?: string;
   department?: string;
   year?: number;
   semester?: number;
   bio?: string;
   avatar?: string;
-  isVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  is_verified: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface CreateUserData {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  rollNumber?: string;
+  first_name: string;
+  last_name: string;
+  roll_number?: string;
   department?: string;
   year?: number;
   semester?: number;
@@ -55,9 +55,9 @@ export interface CreateUserData {
 }
 
 export interface UpdateUserData {
-  firstName?: string;
-  lastName?: string;
-  rollNumber?: string;
+  first_name?: string;
+  last_name?: string;
+  roll_number?: string;
   department?: string;
   year?: number;
   semester?: number;
@@ -72,23 +72,23 @@ export interface SkillData {
   category: string;
   description?: string;
   icon?: string;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export interface UserSkillData {
   id: string;
-  userId: string;
-  skillId: string;
+  user_id: string;
+  skill_id: string;
   proficiency: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
-  yearsOfExp?: number;
+  years_of_exp?: number;
   endorsements: number;
   skill: SkillData;
 }
 
 export interface CreateUserSkillData {
-  skillId: string;
+  skill_id: string;
   proficiency: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
-  yearsOfExp?: number;
+  years_of_exp?: number;
 }
 
 // Project types
@@ -98,17 +98,17 @@ export interface ProjectData {
   description: string;
   status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   type: 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP';
-  maxMembers?: number;
-  startDate?: Date;
-  endDate?: Date;
-  githubUrl?: string;
-  liveUrl?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  max_members?: number;
+  start_date?: Date;
+  end_date?: Date;
+  github_url?: string;
+  live_url?: string;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
   owner: UserProfile;
   members: ProjectMemberData[];
-  requiredSkills: ProjectSkillData[];
+  required_skills: ProjectSkillData[];
   tasks: TaskData[];
 }
 
@@ -116,12 +116,12 @@ export interface CreateProjectData {
   title: string;
   description: string;
   type: 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP';
-  maxMembers?: number;
-  startDate?: Date;
-  endDate?: Date;
-  githubUrl?: string;
-  liveUrl?: string;
-  requiredSkills: string[];
+  max_members?: number;
+  start_date?: Date;
+  end_date?: Date;
+  github_url?: string;
+  live_url?: string;
+  required_skills: string[];
 }
 
 export interface UpdateProjectData {
@@ -129,38 +129,38 @@ export interface UpdateProjectData {
   description?: string;
   status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   type?: 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP';
-  maxMembers?: number;
-  startDate?: Date;
-  endDate?: Date;
-  githubUrl?: string;
-  liveUrl?: string;
+  max_members?: number;
+  start_date?: Date;
+  end_date?: Date;
+  github_url?: string;
+  live_url?: string;
 }
 
 export interface ProjectMemberData {
   id: string;
-  projectId: string;
-  userId: string;
+  project_id: string;
+  user_id: string;
   role: 'MEMBER' | 'COLLABORATOR' | 'MAINTAINER';
-  joinedAt: Date;
+  joined_at: Date;
   user: UserProfile;
 }
 
 export interface ProjectSkillData {
   id: string;
-  projectId: string;
-  skillId: string;
+  project_id: string;
+  skill_id: string;
   required: boolean;
   skill: SkillData;
 }
 
 export interface JoinRequestData {
   id: string;
-  projectId: string;
-  userId: string;
+  project_id: string;
+  user_id: string;
   message?: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
   user: UserProfile;
   project: ProjectData;
 }
@@ -172,15 +172,15 @@ export interface CreateJoinRequestData {
 // Task types
 export interface TaskData {
   id: string;
-  projectId: string;
+  project_id: string;
   title: string;
   description?: string;
   status: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  assigneeId?: string;
-  dueDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  assignee_id?: string;
+  due_date?: Date;
+  created_at: Date;
+  updated_at: Date;
   assignee?: UserProfile;
 }
 
@@ -188,8 +188,8 @@ export interface CreateTaskData {
   title: string;
   description?: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  assigneeId?: string;
-  dueDate?: Date;
+  assignee_id?: string;
+  due_date?: Date;
 }
 
 export interface UpdateTaskData {
@@ -197,8 +197,8 @@ export interface UpdateTaskData {
   description?: string;
   status?: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  assigneeId?: string;
-  dueDate?: Date;
+  assignee_id?: string;
+  due_date?: Date;
 }
 
 // Resource types
@@ -209,12 +209,12 @@ export interface ResourceData {
   type: 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE';
   subject: string;
   semester?: number;
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
   downloads: number;
-  uploaderId: string;
-  createdAt: Date;
+  uploader_id: string;
+  created_at: Date;
   uploader: UserProfile;
   ratings: ResourceRatingData[];
 }
@@ -225,9 +225,9 @@ export interface CreateResourceData {
   type: 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE';
   subject: string;
   semester?: number;
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
 }
 
 export interface UpdateResourceData {
@@ -236,15 +236,15 @@ export interface UpdateResourceData {
   type?: 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE';
   subject?: string;
   semester?: number;
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
 }
 
 export interface ResourceRatingData {
   id: string;
-  resourceId: string;
-  userId: string;
+  resource_id: string;
+  user_id: string;
   rating: number;
   review?: string;
   user: UserProfile;
@@ -262,9 +262,9 @@ export interface PostData {
   content: string;
   type: 'DISCUSSION' | 'ANNOUNCEMENT' | 'HELP' | 'SHOWCASE';
   tags: string[];
-  authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  author_id: string;
+  created_at: Date;
+  updated_at: Date;
   author: UserProfile;
   comments: CommentData[];
   likes: LikeData[];
@@ -287,10 +287,10 @@ export interface UpdatePostData {
 export interface CommentData {
   id: string;
   content: string;
-  postId: string;
-  authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  post_id: string;
+  author_id: string;
+  created_at: Date;
+  updated_at: Date;
   author: UserProfile;
 }
 
@@ -304,8 +304,8 @@ export interface UpdateCommentData {
 
 export interface LikeData {
   id: string;
-  postId: string;
-  userId: string;
+  post_id: string;
+  user_id: string;
   user: UserProfile;
 }
 
@@ -321,26 +321,26 @@ export interface BadgeData {
 
 export interface UserBadgeData {
   id: string;
-  userId: string;
-  badgeId: string;
-  earnedAt: Date;
+  user_id: string;
+  badge_id: string;
+  earned_at: Date;
   badge: BadgeData;
 }
 
 // Notification types
 export interface NotificationData {
   id: string;
-  userId: string;
+  user_id: string;
   type: string;
   title: string;
   message: string;
-  isRead: boolean;
+  is_read: boolean;
   data?: any;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export interface CreateNotificationData {
-  userId: string;
+  user_id: string;
   type: string;
   title: string;
   message: string;
@@ -351,25 +351,25 @@ export interface CreateNotificationData {
 export interface MessageData {
   id: string;
   content: string;
-  senderId: string;
-  receiverId: string;
-  isRead: boolean;
-  createdAt: Date;
+  sender_id: string;
+  receiver_id: string;
+  is_read: boolean;
+  created_at: Date;
   sender: UserProfile;
   receiver: UserProfile;
 }
 
 export interface CreateMessageData {
   content: string;
-  receiverId: string;
+  receiver_id: string;
 }
 
 // Pagination types
 export interface PaginationParams {
   page?: number;
   limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface PaginatedResponse<T> {
@@ -378,9 +378,9 @@ export interface PaginatedResponse<T> {
     page: number;
     limit: number;
     total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+    total_pages: number;
+    has_next: boolean;
+    has_prev: boolean;
   };
 }
 
@@ -414,7 +414,7 @@ export interface PostSearchParams extends PaginationParams {
 
 // JWT payload
 export interface JWTPayload {
-  userId: string;
+  user_id: string;
   email: string;
   role: string;
   iat?: number;
@@ -431,7 +431,7 @@ export interface EmailVerificationData {
 export interface PasswordResetData {
   email: string;
   token: string;
-  newPassword: string;
+  new_password: string;
 }
 
 // File upload

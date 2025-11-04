@@ -12,17 +12,17 @@ const router = Router();
 
 // Public routes
 router.get('/search', searchLimiter, searchUsersValidation, handleValidationErrors, UserController.searchUsers);
-router.get('/:userId', UserController.getUserById);
-router.get('/:userId/skills', UserController.getUserSkills);
-router.get('/:userId/stats', UserController.getUserStats);
-router.get('/:skillId/users', searchLimiter, UserController.getUsersWithSkill);
+router.get('/:user_id', UserController.getUserById);
+router.get('/:user_id/skills', UserController.getUserSkills);
+router.get('/:user_id/stats', UserController.getUserStats);
+router.get('/:skill_id/users', searchLimiter, UserController.getUsersWithSkill);
 
 // Protected routes
 router.use(authenticateToken);
 
 router.post('/skills', addUserSkillValidation, handleValidationErrors, UserController.addUserSkill);
-router.put('/skills/:skillId', addUserSkillValidation, handleValidationErrors, UserController.updateUserSkill);
-router.delete('/skills/:skillId', UserController.removeUserSkill);
-router.post('/:userId/skills/:skillId/endorse', UserController.endorseUserSkill);
+router.put('/skills/:skill_id', addUserSkillValidation, handleValidationErrors, UserController.updateUserSkill);
+router.delete('/skills/:skill_id', UserController.removeUserSkill);
+router.post('/:user_id/skills/:skill_id/endorse', UserController.endorseUserSkill);
 
 export default router;

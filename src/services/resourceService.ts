@@ -10,15 +10,11 @@ import {
 } from '../types';
 
 export class ResourceService {
-  /**
-   * Create new resource
-   */
   static async createResource(
     uploaderId: string,
     resourceData: CreateResourceData
   ): Promise<ResourceData> {
-    // Check if uploader exists
-    const uploader = await prisma.user.findUnique({
+    const uploader = await prisma.users.findUnique({
       where: { id: uploaderId },
     });
 
@@ -26,27 +22,27 @@ export class ResourceService {
       throw new Error('Uploader not found');
     }
 
-    const resource = await prisma.resource.create({
+    const resource = await prisma.resources.create({
       data: {
         ...resourceData,
-        uploaderId,
+        uploader_id: uploaderId,
       },
       include: {
         uploader: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         ratings: {
@@ -55,17 +51,17 @@ export class ResourceService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -76,31 +72,28 @@ export class ResourceService {
     return {
       id: resource.id,
       title: resource.title,
-  description: resource.description ?? undefined,
+      description: resource.description ?? undefined,
       type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
       subject: resource.subject,
-  semester: resource.semester ?? undefined,
-  fileUrl: resource.fileUrl ?? undefined,
-  fileName: resource.fileName ?? undefined,
-  fileSize: resource.fileSize ?? undefined,
+      semester: resource.semester ?? undefined,
+      file_url: resource.file_url ?? undefined,
+      file_name: resource.file_name ?? undefined,
+      file_size: resource.file_size ?? undefined,
       downloads: resource.downloads,
-      uploaderId: resource.uploaderId,
-      createdAt: resource.createdAt,
+      uploader_id: resource.uploader_id,
+      created_at: resource.created_at,
       uploader: resource.uploader as any,
       ratings: resource.ratings.map(rating => ({
         id: rating.id,
-        resourceId: rating.resourceId,
-        userId: rating.userId,
+        resource_id: rating.resource_id,
+        user_id: rating.user_id,
         rating: rating.rating,
-            review: rating.review ?? undefined,
+        review: rating.review ?? undefined,
         user: rating.user as any,
       })),
     };
   }
 
-  /**
-   * Get resources with filters
-   */
   static async getResources(params: ResourceSearchParams): Promise<PaginatedResponse<ResourceData>> {
     const {
       page = 1,
@@ -109,29 +102,19 @@ export class ResourceService {
       type,
       semester,
       search,
-      sortBy = 'createdAt',
+      sortBy = 'created_at',
       sortOrder = 'desc',
     } = params;
 
     const skip = (page - 1) * limit;
-
-    // Build where clause
     const where: any = {};
 
     if (subject) {
-      where.subject = {
-        contains: subject,
-        mode: 'insensitive',
-      };
+      where.subject = { contains: subject, mode: 'insensitive' };
     }
 
-    if (type) {
-      where.type = type;
-    }
-
-    if (semester) {
-      where.semester = semester;
-    }
+    if (type) where.type = type;
+    if (semester) where.semester = semester;
 
     if (search) {
       where.OR = [
@@ -141,30 +124,28 @@ export class ResourceService {
       ];
     }
 
-    // Build orderBy clause
     const orderBy: any = {};
     orderBy[sortBy] = sortOrder;
 
-    // Get resources and total count
     const [resources, total] = await Promise.all([
-      prisma.resource.findMany({
+      prisma.resources.findMany({
         where,
         include: {
           uploader: {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
-              rollNumber: true,
+              first_name: true,
+              last_name: true,
+              roll_number: true,
               department: true,
               year: true,
               semester: true,
               bio: true,
               avatar: true,
-              isVerified: true,
-              createdAt: true,
-              updatedAt: true,
+              is_verified: true,
+              created_at: true,
+              updated_at: true,
             },
           },
           ratings: {
@@ -173,28 +154,27 @@ export class ResourceService {
                 select: {
                   id: true,
                   email: true,
-                  firstName: true,
-                  lastName: true,
-                  rollNumber: true,
+                  first_name: true,
+                  last_name: true,
+                  roll_number: true,
                   department: true,
                   year: true,
                   semester: true,
                   bio: true,
                   avatar: true,
-                  isVerified: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  is_verified: true,
+                  created_at: true,
+                  updated_at: true,
                 },
               },
             },
           },
-          
         },
         skip,
         take: limit,
         orderBy,
       }),
-      prisma.resource.count({ where }),
+      prisma.resources.count({ where }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -203,23 +183,23 @@ export class ResourceService {
       data: resources.map(resource => ({
         id: resource.id,
         title: resource.title,
-  description: resource.description ?? undefined,
+        description: resource.description ?? undefined,
         type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
         subject: resource.subject,
-  semester: resource.semester ?? undefined,
-  fileUrl: resource.fileUrl ?? undefined,
-  fileName: resource.fileName ?? undefined,
-  fileSize: resource.fileSize ?? undefined,
+        semester: resource.semester ?? undefined,
+        file_url: resource.file_url ?? undefined,
+        file_name: resource.file_name ?? undefined,
+        file_size: resource.file_size ?? undefined,
         downloads: resource.downloads,
-        uploaderId: resource.uploaderId,
-        createdAt: resource.createdAt,
+        uploader_id: resource.uploader_id,
+        created_at: resource.created_at,
         uploader: resource.uploader as any,
         ratings: resource.ratings.map(rating => ({
           id: rating.id,
-          resourceId: rating.resourceId,
-          userId: rating.userId,
+          resource_id: rating.resource_id,
+          user_id: rating.user_id,
           rating: rating.rating,
-              review: rating.review ?? undefined,
+          review: rating.review ?? undefined,
           user: rating.user as any,
         })),
       })),
@@ -234,28 +214,25 @@ export class ResourceService {
     };
   }
 
-  /**
-   * Get resource by ID
-   */
   static async getResourceById(resourceId: string): Promise<ResourceData> {
-    const resource = await prisma.resource.findUnique({
+    const resource = await prisma.resources.findUnique({
       where: { id: resourceId },
       include: {
         uploader: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         ratings: {
@@ -264,28 +241,25 @@ export class ResourceService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
-          
         },
       },
     });
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
+    if (!resource) throw new Error('Resource not found');
 
     return {
       id: resource.id,
@@ -294,17 +268,17 @@ export class ResourceService {
       type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
       subject: resource.subject,
       semester: resource.semester ?? undefined,
-      fileUrl: resource.fileUrl ?? undefined,
-      fileName: resource.fileName ?? undefined,
-      fileSize: resource.fileSize ?? undefined,
+      file_url: resource.file_url ?? undefined,
+      file_name: resource.file_name ?? undefined,
+      file_size: resource.file_size ?? undefined,
       downloads: resource.downloads,
-      uploaderId: resource.uploaderId,
-      createdAt: resource.createdAt,
+      uploader_id: resource.uploader_id,
+      created_at: resource.created_at,
       uploader: (resource as any).uploader as any,
       ratings: (resource as any).ratings.map((rating: any) => ({
         id: rating.id,
-        resourceId: rating.resourceId,
-        userId: rating.userId,
+        resource_id: rating.resource_id,
+        user_id: rating.user_id,
         rating: rating.rating,
         review: rating.review ?? undefined,
         user: (rating as any).user as any,
@@ -312,28 +286,19 @@ export class ResourceService {
     };
   }
 
-  /**
-   * Update resource
-   */
   static async updateResource(
     resourceId: string,
     userId: string,
     updateData: UpdateResourceData
   ): Promise<ResourceData> {
-    // Check if resource exists and user is owner
-    const resource = await prisma.resource.findUnique({
+    const resource = await prisma.resources.findUnique({
       where: { id: resourceId },
     });
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
+    if (!resource) throw new Error('Resource not found');
+    if (resource.uploader_id !== userId) throw new Error('Only resource owner can update the resource');
 
-    if (resource.uploaderId !== userId) {
-      throw new Error('Only resource owner can update the resource');
-    }
-
-    const updatedResource = await prisma.resource.update({
+    const updatedResource = await prisma.resources.update({
       where: { id: resourceId },
       data: updateData,
       include: {
@@ -341,17 +306,17 @@ export class ResourceService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         ratings: {
@@ -360,17 +325,17 @@ export class ResourceService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -381,159 +346,106 @@ export class ResourceService {
     return {
       id: updatedResource.id,
       title: updatedResource.title,
-  description: updatedResource.description ?? undefined,
+      description: updatedResource.description ?? undefined,
       type: updatedResource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
       subject: updatedResource.subject,
-  semester: updatedResource.semester ?? undefined,
-  fileUrl: updatedResource.fileUrl ?? undefined,
-  fileName: updatedResource.fileName ?? undefined,
-  fileSize: updatedResource.fileSize ?? undefined,
+      semester: updatedResource.semester ?? undefined,
+      file_url: updatedResource.file_url ?? undefined,
+      file_name: updatedResource.file_name ?? undefined,
+      file_size: updatedResource.file_size ?? undefined,
       downloads: updatedResource.downloads,
-      uploaderId: updatedResource.uploaderId,
-      createdAt: updatedResource.createdAt,
+      uploader_id: updatedResource.uploader_id,
+      created_at: updatedResource.created_at,
       uploader: updatedResource.uploader as any,
       ratings: updatedResource.ratings.map(rating => ({
         id: rating.id,
-        resourceId: rating.resourceId,
-        userId: rating.userId,
+        resource_id: rating.resource_id,
+        user_id: rating.user_id,
         rating: rating.rating,
-            review: rating.review ?? undefined,
+        review: rating.review ?? undefined,
         user: rating.user as any,
       })),
     };
   }
 
-  /**
-   * Delete resource
-   */
   static async deleteResource(resourceId: string, userId: string): Promise<{ message: string }> {
-    // Check if resource exists and user is owner
-    const resource = await prisma.resource.findUnique({
-      where: { id: resourceId },
-    });
+    const resource = await prisma.resources.findUnique({ where: { id: resourceId } });
+    if (!resource) throw new Error('Resource not found');
+    if (resource.uploader_id !== userId) throw new Error('Only resource owner can delete the resource');
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
-
-    if (resource.uploaderId !== userId) {
-      throw new Error('Only resource owner can delete the resource');
-    }
-
-    await prisma.resource.delete({
-      where: { id: resourceId },
-    });
-
+    await prisma.resources.delete({ where: { id: resourceId } });
     return { message: 'Resource deleted successfully' };
   }
 
-  /**
-   * Track resource download
-   */
   static async trackDownload(resourceId: string): Promise<{ message: string }> {
-    const resource = await prisma.resource.findUnique({
-      where: { id: resourceId },
-    });
+    const resource = await prisma.resources.findUnique({ where: { id: resourceId } });
+    if (!resource) throw new Error('Resource not found');
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
-
-    await prisma.resource.update({
+    await prisma.resources.update({
       where: { id: resourceId },
-      data: {
-        downloads: {
-          increment: 1,
-        },
-      },
+      data: { downloads: { increment: 1 } },
     });
 
     return { message: 'Download tracked successfully' };
   }
 
-  /**
-   * Rate resource
-   */
   static async rateResource(
     resourceId: string,
     userId: string,
     ratingData: CreateResourceRatingData
   ): Promise<ResourceRatingData> {
-    // Check if resource exists
-    const resource = await prisma.resource.findUnique({
-      where: { id: resourceId },
-    });
+    const resource = await prisma.resources.findUnique({ where: { id: resourceId } });
+    if (!resource) throw new Error('Resource not found');
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
-
-    // Check if user has already rated this resource
-    const existingRating = await prisma.resourceRating.findUnique({
-      where: {
-        resourceId_userId: {
-          resourceId,
-          userId,
-        },
-      },
+    const existingRating = await prisma.resource_ratings.findUnique({
+      where: { resource_id_user_id: { resource_id: resourceId, user_id: userId } },
     });
 
     let resourceRating;
 
     if (existingRating) {
-      // Update existing rating
-      resourceRating = await prisma.resourceRating.update({
-        where: {
-          resourceId_userId: {
-            resourceId,
-            userId,
-          },
-        },
+      resourceRating = await prisma.resource_ratings.update({
+        where: { resource_id_user_id: { resource_id: resourceId, user_id: userId } },
         data: ratingData,
         include: {
           user: {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
-              rollNumber: true,
+              first_name: true,
+              last_name: true,
+              roll_number: true,
               department: true,
               year: true,
               semester: true,
               bio: true,
               avatar: true,
-              isVerified: true,
-              createdAt: true,
-              updatedAt: true,
+              is_verified: true,
+              created_at: true,
+              updated_at: true,
             },
           },
         },
       });
     } else {
-      // Create new rating
-      resourceRating = await prisma.resourceRating.create({
-        data: {
-          resourceId,
-          userId,
-          ...ratingData,
-        },
+      resourceRating = await prisma.resource_ratings.create({
+        data: { resource_id: resourceId, user_id: userId, ...ratingData },
         include: {
           user: {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
-              rollNumber: true,
+              first_name: true,
+              last_name: true,
+              roll_number: true,
               department: true,
               year: true,
               semester: true,
               bio: true,
               avatar: true,
-              isVerified: true,
-              createdAt: true,
-              updatedAt: true,
+              is_verified: true,
+              created_at: true,
+              updated_at: true,
             },
           },
         },
@@ -542,92 +454,64 @@ export class ResourceService {
 
     return {
       id: resourceRating.id,
-      resourceId: resourceRating.resourceId,
-      userId: resourceRating.userId,
+      resource_id: resourceRating.resource_id,
+      user_id: resourceRating.user_id,
       rating: resourceRating.rating,
       review: resourceRating.review,
       user: resourceRating.user as any,
     };
   }
 
-  /**
-   * Get resource ratings
-   */
   static async getResourceRatings(resourceId: string): Promise<ResourceRatingData[]> {
-    const ratings = await prisma.resourceRating.findMany({
-      where: { resourceId },
+    const ratings = await prisma.resource_ratings.findMany({
+      where: { resource_id: resourceId },
       include: {
         user: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
       },
-  // ResourceRating has no createdAt field in schema; remove ordering
     });
 
     return ratings.map(rating => ({
       id: rating.id,
-      resourceId: rating.resourceId,
-      userId: rating.userId,
+      resource_id: rating.resource_id,
+      user_id: rating.user_id,
       rating: rating.rating,
       review: rating.review ?? undefined,
       user: (rating as any).user as any,
     }));
   }
 
-  /**
-   * Get resource statistics
-   */
-  static async getResourceStats(resourceId: string): Promise<{
-    totalDownloads: number;
-    averageRating: number;
-    totalRatings: number;
-  }> {
+  static async getResourceStats(resourceId: string): Promise<{ totalDownloads: number; averageRating: number; totalRatings: number }> {
     const [resource, ratings] = await Promise.all([
-      prisma.resource.findUnique({
-        where: { id: resourceId },
-        select: { downloads: true },
-      }),
-      prisma.resourceRating.findMany({
-        where: { resourceId },
-        select: { rating: true },
-      }),
+      prisma.resources.findUnique({ where: { id: resourceId }, select: { downloads: true } }),
+      prisma.resource_ratings.findMany({ where: { resource_id: resourceId }, select: { rating: true } }),
     ]);
 
-    if (!resource) {
-      throw new Error('Resource not found');
-    }
+    if (!resource) throw new Error('Resource not found');
 
     const totalRatings = ratings.length;
-    const averageRating = totalRatings > 0 
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings 
-      : 0;
+    const averageRating = totalRatings > 0 ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings : 0;
 
-    return {
-      totalDownloads: resource.downloads,
-      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
-      totalRatings,
-    };
+    return { totalDownloads: resource.downloads, averageRating: Math.round(averageRating * 10) / 10, totalRatings };
   }
 
-  /**
-   * Get popular resources
-   */
   static async getPopularResources(limit: number = 10): Promise<ResourceData[]> {
-    const resources = await prisma.resource.findMany({
+    const resources = await prisma.resources.findMany({
       orderBy: { downloads: 'desc' },
       take: limit,
       include: {
@@ -635,17 +519,17 @@ export class ResourceService {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true,
-            rollNumber: true,
+            first_name: true,
+            last_name: true,
+            roll_number: true,
             department: true,
             year: true,
             semester: true,
             bio: true,
             avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
+            is_verified: true,
+            created_at: true,
+            updated_at: true,
           },
         },
         ratings: {
@@ -654,17 +538,17 @@ export class ResourceService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
-                rollNumber: true,
+                first_name: true,
+                last_name: true,
+                roll_number: true,
                 department: true,
                 year: true,
                 semester: true,
                 bio: true,
                 avatar: true,
-                isVerified: true,
-                createdAt: true,
-                updatedAt: true,
+                is_verified: true,
+                created_at: true,
+                updated_at: true,
               },
             },
           },
@@ -679,17 +563,17 @@ export class ResourceService {
       type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
       subject: resource.subject,
       semester: resource.semester ?? undefined,
-      fileUrl: resource.fileUrl ?? undefined,
-      fileName: resource.fileName ?? undefined,
-      fileSize: resource.fileSize ?? undefined,
+      file_url: resource.file_url ?? undefined,
+      file_name: resource.file_name ?? undefined,
+      file_size: resource.file_size ?? undefined,
       downloads: resource.downloads,
-      uploaderId: resource.uploaderId,
-      createdAt: resource.createdAt,
+      uploader_id: resource.uploader_id,
+      created_at: resource.created_at,
       uploader: (resource as any).uploader as any,
       ratings: (resource as any).ratings.map((rating: any) => ({
         id: rating.id,
-        resourceId: rating.resourceId,
-        userId: rating.userId,
+        resource_id: rating.resource_id,
+        user_id: rating.user_id,
         rating: rating.rating,
         review: rating.review ?? undefined,
         user: (rating as any).user as any,

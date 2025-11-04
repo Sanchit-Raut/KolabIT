@@ -16,12 +16,12 @@ export const createTaskValidation = [
     .isIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
     .withMessage('Priority must be one of: LOW, MEDIUM, HIGH, URGENT'),
   
-  body('assigneeId')
+  body('assignee_id')
     .optional()
     .isUUID()
     .withMessage('Assignee ID must be a valid UUID'),
   
-  body('dueDate')
+  body('due_date')
     .optional()
     .isISO8601()
     .withMessage('Due date must be a valid ISO 8601 date')
@@ -56,12 +56,12 @@ export const updateTaskValidation = [
     .isIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
     .withMessage('Priority must be one of: LOW, MEDIUM, HIGH, URGENT'),
   
-  body('assigneeId')
+  body('assignee_id')
     .optional()
     .isUUID()
     .withMessage('Assignee ID must be a valid UUID'),
   
-  body('dueDate')
+  body('due_date')
     .optional()
     .isISO8601()
     .withMessage('Due date must be a valid ISO 8601 date'),

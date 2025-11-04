@@ -7,9 +7,9 @@ describe('Authentication Endpoints', () => {
       const userData = {
         email: 'test@example.com',
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
-        rollNumber: 'CS2023001',
+        first_name: 'John',
+        last_name: 'Doe',
+        roll_number: 'CS2023001',
         department: 'Computer Science',
         year: 2,
         semester: 4,
@@ -30,8 +30,8 @@ describe('Authentication Endpoints', () => {
       const userData = {
         email: 'invalid-email',
         password: 'TestPassword123!',
-        firstName: 'John',
-        lastName: 'Doe',
+        first_name: 'John',
+        last_name: 'Doe',
       };
 
       const response = await request(app)
@@ -47,8 +47,8 @@ describe('Authentication Endpoints', () => {
       const userData = {
         email: 'test@example.com',
         password: 'weak',
-        firstName: 'John',
-        lastName: 'Doe',
+        first_name: 'John',
+        last_name: 'Doe',
       };
 
       const response = await request(app)
@@ -67,8 +67,8 @@ describe('Authentication Endpoints', () => {
       const userData = {
         email: 'login@example.com',
         password: 'TestPassword123!',
-        firstName: 'Jane',
-        lastName: 'Doe',
+        first_name: 'Jane',
+        last_name: 'Doe',
       };
 
       await request(app)
@@ -109,8 +109,8 @@ describe('Authentication Endpoints', () => {
       const userData = {
         email: 'profile@example.com',
         password: 'TestPassword123!',
-        firstName: 'Profile',
-        lastName: 'User',
+        first_name: 'Profile',
+        last_name: 'User',
       };
 
       const registerResponse = await request(app)

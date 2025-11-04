@@ -15,42 +15,42 @@ export const createProjectValidation = [
     .isIn(['ACADEMIC', 'PERSONAL', 'COMPETITION', 'INTERNSHIP'])
     .withMessage('Type must be one of: ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP'),
   
-  body('maxMembers')
+  body('max_members')
     .optional()
     .isInt({ min: 2, max: 50 })
     .withMessage('Max members must be between 2 and 50'),
   
-  body('startDate')
+  body('start_date')
     .optional()
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),
   
-  body('endDate')
+  body('end_date')
     .optional()
     .isISO8601()
     .withMessage('End date must be a valid ISO 8601 date')
     .custom((value, { req }) => {
-      if (value && req.body.startDate && new Date(value) <= new Date(req.body.startDate)) {
+      if (value && req.body.start_date && new Date(value) <= new Date(req.body.start_date)) {
         throw new Error('End date must be after start date');
       }
       return true;
     }),
   
-  body('githubUrl')
+  body('github_url')
     .optional()
     .isURL()
     .withMessage('GitHub URL must be a valid URL'),
   
-  body('liveUrl')
+  body('live_url')
     .optional()
     .isURL()
     .withMessage('Live URL must be a valid URL'),
   
-  body('requiredSkills')
+  body('required_skills')
     .isArray({ min: 1 })
     .withMessage('At least one required skill must be specified'),
   
-  body('requiredSkills.*')
+  body('required_skills.*')
     .isString()
     .trim()
     .isLength({ min: 20, max: 30 })
@@ -80,27 +80,27 @@ export const updateProjectValidation = [
     .isIn(['ACADEMIC', 'PERSONAL', 'COMPETITION', 'INTERNSHIP'])
     .withMessage('Type must be one of: ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP'),
   
-  body('maxMembers')
+  body('max_members')
     .optional()
     .isInt({ min: 2, max: 50 })
     .withMessage('Max members must be between 2 and 50'),
   
-  body('startDate')
+  body('start_date')
     .optional()
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),
   
-  body('endDate')
+  body('end_date')
     .optional()
     .isISO8601()
     .withMessage('End date must be a valid ISO 8601 date'),
   
-  body('githubUrl')
+  body('github_url')
     .optional()
     .isURL()
     .withMessage('GitHub URL must be a valid URL'),
   
-  body('liveUrl')
+  body('live_url')
     .optional()
     .isURL()
     .withMessage('Live URL must be a valid URL'),

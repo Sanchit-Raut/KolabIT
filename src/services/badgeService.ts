@@ -27,19 +27,19 @@ export class BadgeService {
    * Get user's badges
    */
   static async getUserBadges(userId: string): Promise<UserBadgeData[]> {
-    const userBadges = await prisma.userBadge.findMany({
-      where: { userId },
+    const userBadges = await prisma.user_badge.findMany({
+      where: { user_id: userId },
       include: {
         badge: true,
       },
-      orderBy: { earnedAt: 'desc' },
+      orderBy: { earned_at: 'desc' },
     });
 
     return userBadges.map(ub => ({
       id: ub.id,
-      userId: ub.userId,
-      badgeId: ub.badgeId,
-      earnedAt: ub.earnedAt,
+      userId: ub.user_id,
+      badgeId: ub.badge_id,
+      earnedAt: ub.earned_at,
       badge: {
         id: ub.badge.id,
         name: ub.badge.name,
@@ -58,12 +58,12 @@ export class BadgeService {
     const newBadges: BadgeData[] = [];
 
     // Get user's current badges
-    const userBadges = await prisma.userBadge.findMany({
-      where: { userId },
-      select: { badgeId: true },
+    const userBadges = await prisma.user_badge.findMany({
+      where: { user_id: userId },
+      select: { badge_id: true },
     });
 
-    const userBadgeIds = userBadges.map(ub => ub.badgeId);
+    const userBadgeIds = userBadges.map(ub => ub.badge_id);
 
     // Get all available badges
     const allBadges = await prisma.badge.findMany();
@@ -96,10 +96,10 @@ export class BadgeService {
 
         if (shouldAward) {
           // Award the badge
-          await prisma.userBadge.create({
+          await prisma.user_badge.create({
             data: {
-              userId,
-              badgeId: badge.id,
+              user_id: userId,
+              badge_id: badge.id,
             },
           });
 
@@ -129,8 +129,8 @@ export class BadgeService {
   private static async checkSkillBadgeCriteria(userId: string, criteria: any): Promise<boolean> {
     const { minSkills, minProficiency, minEndorsements } = criteria;
 
-    const userSkills = await prisma.userSkill.findMany({
-      where: { userId },
+    const userSkills = await prisma.user_skill.findMany({
+      where: { user_id: userId },
     });
 
     if (minSkills && userSkills.length < minSkills) {
@@ -172,10 +172,10 @@ export class BadgeService {
     const { minProjects, minResources, minPosts, minComments } = criteria;
 
     const [projectCount, resourceCount, postCount, commentCount] = await Promise.all([
-      minProjects ? prisma.projectMember.count({ where: { userId } }) : 0,
-      minResources ? prisma.resource.count({ where: { uploaderId: userId } }) : 0,
-      minPosts ? prisma.post.count({ where: { authorId: userId } }) : 0,
-      minComments ? prisma.comment.count({ where: { authorId: userId } }) : 0,
+      minProjects ? prisma.project_member.count({ where: { user_id: userId } }) : 0,
+      minResources ? prisma.resource.count({ where: { uploader_id: userId } }) : 0,
+      minPosts ? prisma.post.count({ where: { author_id: userId } }) : 0,
+      minComments ? prisma.comment.count({ where: { author_id: userId } }) : 0,
     ]);
 
     if (minProjects && projectCount < minProjects) return false;
@@ -194,14 +194,14 @@ export class BadgeService {
 
     const [resourceDownloads, postLikes, resourceRatings] = await Promise.all([
       minDownloads ? prisma.resource.aggregate({
-        where: { uploaderId: userId },
+        where: { uploader_id: userId },
         _sum: { downloads: true },
       }) : { _sum: { downloads: 0 } },
       minLikes ? prisma.like.count({
-        where: { post: { authorId: userId } },
+        where: { post: { author_id: userId } },
       }) : 0,
-      minRatings ? prisma.resourceRating.count({
-        where: { resource: { uploaderId: userId } },
+      minRatings ? prisma.resource_rating.count({
+        where: { resource: { uploader_id: userId } },
       }) : 0,
     ]);
 
@@ -220,23 +220,23 @@ export class BadgeService {
 
     switch (type) {
       case 'FIRST_PROJECT':
-        const projectCount = await prisma.projectMember.count({ where: { userId } });
+        const projectCount = await prisma.project_member.count({ where: { user_id: userId } });
         return projectCount >= 1;
       
       case 'FIRST_RESOURCE':
-        const resourceCount = await prisma.resource.count({ where: { uploaderId: userId } });
+        const resourceCount = await prisma.resource.count({ where: { uploader_id: userId } });
         return resourceCount >= 1;
       
       case 'FIRST_POST':
-        const postCount = await prisma.post.count({ where: { authorId: userId } });
+        const postCount = await prisma.post.count({ where: { author_id: userId } });
         return postCount >= 1;
       
       case 'VERIFIED_USER':
         const user = await prisma.user.findUnique({
           where: { id: userId },
-          select: { isVerified: true },
+          select: { is_verified: true },
         });
-        return user?.isVerified || false;
+        return user?.is_verified || false;
       
       default:
         return false;
@@ -259,9 +259,9 @@ export class BadgeService {
     let whereClause: any = {};
 
     if (skillId) {
-      whereClause.userSkills = {
+      whereClause.user_skills = {
         some: {
-          skillId,
+          skill_id: skillId,
         },
       };
     }
@@ -269,15 +269,15 @@ export class BadgeService {
     const users = await prisma.user.findMany({
       where: {
         ...whereClause,
-        isVerified: true,
+        is_verified: true,
       },
       include: {
-        userSkills: {
+        user_skills: {
           include: {
             skill: true,
           },
         },
-        userBadges: true,
+        user_badges: true,
         resources: {
           select: { downloads: true },
         },
@@ -292,22 +292,22 @@ export class BadgeService {
 
     const leaderboard = users.map(user => {
       // Calculate score based on various factors
-      const skillScore = user.userSkills.reduce((sum, us) => sum + us.endorsements, 0);
+      const skillScore = user.user_skills.reduce((sum, us) => sum + us.endorsements, 0);
       const resourceScore = user.resources.reduce((sum, r) => sum + r.downloads, 0);
       const postScore = user.posts.reduce((sum, p) => sum + p.likes.length, 0);
-      const badgeScore = user.userBadges.length * 10;
+      const badgeScore = user.user_badges.length * 10;
 
       const totalScore = skillScore + resourceScore + postScore + badgeScore;
 
       return {
         user: {
           id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.first_name,
+          lastName: user.last_name,
           avatar: user.avatar ?? undefined,
         },
         score: totalScore,
-        badges: user.userBadges.length,
+        badges: user.user_badges.length,
       };
     });
 

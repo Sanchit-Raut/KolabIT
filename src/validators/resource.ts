@@ -26,18 +26,18 @@ export const createResourceValidation = [
     .isInt({ min: 1, max: 10 })
     .withMessage('Semester must be between 1 and 10'),
   
-  body('fileUrl')
+  body('file_url')
     .optional()
     .isURL()
     .withMessage('File URL must be a valid URL'),
   
-  body('fileName')
+  body('file_name')
     .optional()
     .trim()
     .isLength({ min: 1, max: 255 })
     .withMessage('File name must be between 1 and 255 characters'),
   
-  body('fileSize')
+  body('file_size')
     .optional()
     .isInt({ min: 1 })
     .withMessage('File size must be a positive integer'),
@@ -72,18 +72,18 @@ export const updateResourceValidation = [
     .isInt({ min: 1, max: 10 })
     .withMessage('Semester must be between 1 and 10'),
   
-  body('fileUrl')
+  body('file_url')
     .optional()
     .isURL()
     .withMessage('File URL must be a valid URL'),
   
-  body('fileName')
+  body('file_name')
     .optional()
     .trim()
     .isLength({ min: 1, max: 255 })
     .withMessage('File name must be between 1 and 255 characters'),
   
-  body('fileSize')
+  body('file_size')
     .optional()
     .isInt({ min: 1 })
     .withMessage('File size must be a positive integer'),

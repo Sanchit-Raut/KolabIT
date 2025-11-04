@@ -21,7 +21,7 @@ export class AuthService {
     // Check if roll number is already taken (if provided)
     if (userData.rollNumber) {
       const existingRollNumber = await prisma.user.findUnique({
-        where: { rollNumber: userData.rollNumber },
+        where: { roll_number: userData.rollNumber },
       });
 
       if (existingRollNumber) {
@@ -46,22 +46,22 @@ export class AuthService {
       data: {
         ...userData,
         password: hashedPassword,
-        verificationToken,
+        verification_token: verificationToken,
       },
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        rollNumber: true,
+        first_name: true,
+        last_name: true,
+        roll_number: true,
         department: true,
         year: true,
         semester: true,
         bio: true,
         avatar: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
+        is_verified: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
@@ -83,17 +83,17 @@ export class AuthService {
     const userProfile: UserProfile = {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      rollNumber: user.rollNumber ?? undefined,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      rollNumber: user.roll_number ?? undefined,
       department: user.department ?? undefined,
       year: user.year ?? undefined,
       semester: user.semester ?? undefined,
       bio: user.bio ?? undefined,
       avatar: user.avatar ?? undefined,
-      isVerified: user.isVerified,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      isVerified: user.is_verified,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
     };
 
     return { user: userProfile, token };
@@ -113,7 +113,7 @@ export class AuthService {
     }
 
     // Check if user is verified
-    if (!user.isVerified) {
+    if (!user.is_verified) {
       throw new Error('Please verify your email before logging in');
     }
 
@@ -135,17 +135,17 @@ export class AuthService {
     const userProfile: UserProfile = {
       id: raw.id,
       email: raw.email,
-      firstName: raw.firstName,
-      lastName: raw.lastName,
-      rollNumber: raw.rollNumber ?? undefined,
+      firstName: raw.first_name,
+      lastName: raw.last_name,
+      rollNumber: raw.roll_number ?? undefined,
       department: raw.department ?? undefined,
       year: raw.year ?? undefined,
       semester: raw.semester ?? undefined,
       bio: raw.bio ?? undefined,
       avatar: raw.avatar ?? undefined,
-      isVerified: raw.isVerified,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
+      isVerified: raw.is_verified,
+      createdAt: raw.created_at,
+      updatedAt: raw.updated_at,
     };
 
     return { user: userProfile, token };
@@ -166,21 +166,21 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      if (user.isVerified) {
+      if (user.is_verified) {
         return { message: 'Email already verified' };
       }
 
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          isVerified: true,
-          verificationToken: null,
+          is_verified: true,
+          verification_token: null,
         },
       });
 
       // Send welcome email
       try {
-        await EmailUtils.sendWelcomeEmail(user.email, user.firstName);
+        await EmailUtils.sendWelcomeEmail(user.email, user.first_name);
       } catch (error) {
         console.error('Failed to send welcome email:', error);
       }
@@ -212,8 +212,8 @@ export class AuthService {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
-        resetTokenExpiry,
+        reset_token: resetToken,
+        reset_token_expiry: resetTokenExpiry,
       },
     });
 
@@ -243,11 +243,11 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      if (!user.resetToken || user.resetToken !== token) {
+      if (!user.reset_token || user.reset_token !== token) {
         throw new Error('Invalid reset token');
       }
 
-      if (!user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      if (!user.reset_token_expiry || user.reset_token_expiry < new Date()) {
         throw new Error('Reset token has expired');
       }
 
@@ -265,8 +265,8 @@ export class AuthService {
         where: { id: user.id },
         data: {
           password: hashedPassword,
-          resetToken: null,
-          resetTokenExpiry: null,
+          reset_token: null,
+          reset_token_expiry: null,
         },
       });
 
@@ -285,17 +285,17 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        rollNumber: true,
+        first_name: true,
+        last_name: true,
+        roll_number: true,
         department: true,
         year: true,
         semester: true,
         bio: true,
         avatar: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
+        is_verified: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
@@ -303,7 +303,21 @@ export class AuthService {
       throw new Error('User not found');
     }
 
-    return user as UserProfile;
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      rollNumber: user.roll_number ?? undefined,
+      department: user.department ?? undefined,
+      year: user.year ?? undefined,
+      semester: user.semester ?? undefined,
+      bio: user.bio ?? undefined,
+      avatar: user.avatar ?? undefined,
+      isVerified: user.is_verified,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    };
   }
 
   /**
@@ -319,21 +333,35 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        rollNumber: true,
+        first_name: true,
+        last_name: true,
+        roll_number: true,
         department: true,
         year: true,
         semester: true,
         bio: true,
         avatar: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
+        is_verified: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
-    return user as UserProfile;
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      rollNumber: user.roll_number ?? undefined,
+      department: user.department ?? undefined,
+      year: user.year ?? undefined,
+      semester: user.semester ?? undefined,
+      bio: user.bio ?? undefined,
+      avatar: user.avatar ?? undefined,
+      isVerified: user.is_verified,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    };
   }
 
   /**

@@ -21,7 +21,7 @@ export class UserService {
 
     // Build where clause
     const where: any = {
-      isVerified: true,
+      is_verified: true,
     };
 
     if (department) {
@@ -37,24 +37,30 @@ export class UserService {
 
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
+        { first_name: { contains: search, mode: 'insensitive' } },
+        { last_name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
-        { rollNumber: { contains: search, mode: 'insensitive' } },
+        { roll_number: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     if (skills.length > 0) {
-      where.userSkills = {
+      where.user_skills = {
         some: {
-          skillId: { in: skills },
+          skill_id: { in: skills },
         },
       };
     }
 
     // Build orderBy clause
     const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
+    const sortByMap: any = {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      firstName: 'first_name',
+      lastName: 'last_name',
+    };
+    orderBy[sortByMap[sortBy] || sortBy] = sortOrder;
 
     // Get users and total count
     const [users, total] = await Promise.all([
@@ -63,17 +69,17 @@ export class UserService {
         select: {
           id: true,
           email: true,
-          firstName: true,
-          lastName: true,
-          rollNumber: true,
+          first_name: true,
+          last_name: true,
+          roll_number: true,
           department: true,
           year: true,
           semester: true,
           bio: true,
           avatar: true,
-          isVerified: true,
-          createdAt: true,
-          updatedAt: true,
+          is_verified: true,
+          created_at: true,
+          updated_at: true,
         },
         skip,
         take: limit,
@@ -85,7 +91,21 @@ export class UserService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: users as UserProfile[],
+      data: users.map(user => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        rollNumber: user.roll_number ?? undefined,
+        department: user.department ?? undefined,
+        year: user.year ?? undefined,
+        semester: user.semester ?? undefined,
+        bio: user.bio ?? undefined,
+        avatar: user.avatar ?? undefined,
+        isVerified: user.is_verified,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      })),
       pagination: {
         page,
         limit,
@@ -106,17 +126,17 @@ export class UserService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        rollNumber: true,
+        first_name: true,
+        last_name: true,
+        roll_number: true,
         department: true,
         year: true,
         semester: true,
         bio: true,
         avatar: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
+        is_verified: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
@@ -124,15 +144,29 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user as UserProfile;
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      rollNumber: user.roll_number ?? undefined,
+      department: user.department ?? undefined,
+      year: user.year ?? undefined,
+      semester: user.semester ?? undefined,
+      bio: user.bio ?? undefined,
+      avatar: user.avatar ?? undefined,
+      isVerified: user.is_verified,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    };
   }
 
   /**
    * Get user skills
    */
   static async getUserSkills(userId: string): Promise<UserSkillData[]> {
-    const userSkills = await prisma.userSkill.findMany({
-      where: { userId },
+    const userSkills = await prisma.user_skill.findMany({
+      where: { user_id: userId },
       include: {
         skill: true,
       },
@@ -141,10 +175,10 @@ export class UserService {
 
     return userSkills.map(us => ({
       id: us.id,
-      userId: us.userId,
-      skillId: us.skillId,
+      userId: us.user_id,
+      skillId: us.skill_id,
       proficiency: us.proficiency as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT',
-      yearsOfExp: us.yearsOfExp ?? undefined,
+      yearsOfExp: us.years_of_exp ?? undefined,
       endorsements: us.endorsements,
       skill: {
         id: us.skill.id,
@@ -152,7 +186,7 @@ export class UserService {
         category: us.skill.category,
         description: us.skill.description ?? undefined,
         icon: us.skill.icon ?? undefined,
-        createdAt: us.skill.createdAt,
+        createdAt: us.skill.created_at,
       },
     }));
   }
@@ -180,11 +214,11 @@ export class UserService {
     }
 
     // Check if user already has this skill
-    const existingUserSkill = await prisma.userSkill.findUnique({
+    const existingUserSkill = await prisma.user_skill.findUnique({
       where: {
-        userId_skillId: {
-          userId,
-          skillId: skillData.skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillData.skillId,
         },
       },
     });
@@ -194,12 +228,12 @@ export class UserService {
     }
 
     // Create user skill
-    const userSkill = await prisma.userSkill.create({
+    const userSkill = await prisma.user_skill.create({
       data: {
-        userId,
-        skillId: skillData.skillId,
+        user_id: userId,
+        skill_id: skillData.skillId,
         proficiency: skillData.proficiency,
-        yearsOfExp: skillData.yearsOfExp,
+        years_of_exp: skillData.yearsOfExp,
       },
       include: {
         skill: true,
@@ -208,10 +242,10 @@ export class UserService {
 
     return {
       id: userSkill.id,
-      userId: userSkill.userId,
-      skillId: userSkill.skillId,
+      userId: userSkill.user_id,
+      skillId: userSkill.skill_id,
       proficiency: userSkill.proficiency as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT',
-      yearsOfExp: userSkill.yearsOfExp ?? undefined,
+      yearsOfExp: userSkill.years_of_exp ?? undefined,
       endorsements: userSkill.endorsements,
       skill: {
         id: userSkill.skill.id,
@@ -219,7 +253,7 @@ export class UserService {
         category: userSkill.skill.category,
         description: userSkill.skill.description ?? undefined,
         icon: userSkill.skill.icon ?? undefined,
-        createdAt: userSkill.skill.createdAt,
+        createdAt: userSkill.skill.created_at,
       },
     };
   }
@@ -233,11 +267,11 @@ export class UserService {
     updateData: Partial<CreateUserSkillData>
   ): Promise<UserSkillData> {
     // Check if user skill exists
-    const existingUserSkill = await prisma.userSkill.findUnique({
+    const existingUserSkill = await prisma.user_skill.findUnique({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
     });
@@ -247,11 +281,11 @@ export class UserService {
     }
 
     // Update user skill
-    const userSkill = await prisma.userSkill.update({
+    const userSkill = await prisma.user_skill.update({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
       data: updateData,
@@ -262,10 +296,10 @@ export class UserService {
 
     return {
       id: userSkill.id,
-      userId: userSkill.userId,
-      skillId: userSkill.skillId,
+      userId: userSkill.user_id,
+      skillId: userSkill.skill_id,
       proficiency: userSkill.proficiency as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT',
-      yearsOfExp: userSkill.yearsOfExp ?? undefined,
+      yearsOfExp: userSkill.years_of_exp ?? undefined,
       endorsements: userSkill.endorsements,
       skill: {
         id: userSkill.skill.id,
@@ -273,7 +307,7 @@ export class UserService {
         category: userSkill.skill.category,
         description: userSkill.skill.description ?? undefined,
         icon: userSkill.skill.icon ?? undefined,
-        createdAt: userSkill.skill.createdAt,
+        createdAt: userSkill.skill.created_at,
       },
     };
   }
@@ -283,11 +317,11 @@ export class UserService {
    */
   static async removeUserSkill(userId: string, skillId: string): Promise<{ message: string }> {
     // Check if user skill exists
-    const existingUserSkill = await prisma.userSkill.findUnique({
+    const existingUserSkill = await prisma.user_skill.findUnique({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
     });
@@ -297,11 +331,11 @@ export class UserService {
     }
 
     // Delete user skill
-    await prisma.userSkill.delete({
+    await prisma.user_skill.delete({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
     });
@@ -314,11 +348,11 @@ export class UserService {
    */
   static async endorseUserSkill(userId: string, skillId: string): Promise<{ message: string }> {
     // Check if user skill exists
-    const userSkill = await prisma.userSkill.findUnique({
+    const userSkill = await prisma.user_skill.findUnique({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
     });
@@ -328,11 +362,11 @@ export class UserService {
     }
 
     // Increment endorsements
-    await prisma.userSkill.update({
+    await prisma.user_skill.update({
       where: {
-        userId_skillId: {
-          userId,
-          skillId,
+        user_id_skill_id: {
+          user_id: userId,
+          skill_id: skillId,
         },
       },
       data: {
@@ -372,33 +406,39 @@ export class UserService {
 
     // Build orderBy clause
     const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
+    const sortByMap: any = {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      firstName: 'first_name',
+      lastName: 'last_name',
+    };
+    orderBy[sortByMap[sortBy] || sortBy] = sortOrder;
 
     // Get users with this skill
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where: {
-          isVerified: true,
-          userSkills: {
+          is_verified: true,
+          user_skills: {
             some: {
-              skillId,
+              skill_id: skillId,
             },
           },
         },
         select: {
           id: true,
           email: true,
-          firstName: true,
-          lastName: true,
-          rollNumber: true,
+          first_name: true,
+          last_name: true,
+          roll_number: true,
           department: true,
           year: true,
           semester: true,
           bio: true,
           avatar: true,
-          isVerified: true,
-          createdAt: true,
-          updatedAt: true,
+          is_verified: true,
+          created_at: true,
+          updated_at: true,
         },
         skip,
         take: limit,
@@ -406,10 +446,10 @@ export class UserService {
       }),
       prisma.user.count({
         where: {
-          isVerified: true,
-          userSkills: {
+          is_verified: true,
+          user_skills: {
             some: {
-              skillId,
+              skill_id: skillId,
             },
           },
         },
@@ -419,7 +459,21 @@ export class UserService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: users as UserProfile[],
+      data: users.map(user => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        rollNumber: user.roll_number ?? undefined,
+        department: user.department ?? undefined,
+        year: user.year ?? undefined,
+        semester: user.semester ?? undefined,
+        bio: user.bio ?? undefined,
+        avatar: user.avatar ?? undefined,
+        isVerified: user.is_verified,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      })),
       pagination: {
         page,
         limit,
@@ -448,20 +502,20 @@ export class UserService {
       totalPosts,
       totalEndorsements,
     ] = await Promise.all([
-      prisma.userSkill.count({
-        where: { userId },
+      prisma.user_skill.count({
+        where: { user_id: userId },
       }),
-      prisma.projectMember.count({
-        where: { userId },
+      prisma.project_member.count({
+        where: { user_id: userId },
       }),
       prisma.resource.count({
-        where: { uploaderId: userId },
+        where: { uploader_id: userId },
       }),
       prisma.post.count({
-        where: { authorId: userId },
+        where: { author_id: userId },
       }),
-      prisma.userSkill.aggregate({
-        where: { userId },
+      prisma.user_skill.aggregate({
+        where: { user_id: userId },
         _sum: { endorsements: true },
       }),
     ]);
