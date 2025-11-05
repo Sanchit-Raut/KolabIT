@@ -18,6 +18,9 @@ import resourceRoutes from './routes/resource';
 import postRoutes from './routes/post';
 import badgeRoutes from './routes/badge';
 import notificationRoutes from './routes/notification';
+import certificationRoutes from './routes/certification';
+import portfolioRoutes from './routes/portfolio';
+import analyticsRoutes from './routes/analytics';
 
 const app = express();
 const server = createServer(app);
@@ -66,6 +69,9 @@ app.use('/api/resources', resourceRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/certifications', certificationRoutes);
+app.use('/api/portfolios', portfolioRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

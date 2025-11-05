@@ -445,3 +445,44 @@ export interface FileUploadData {
   filename: string;
   path: string;
 }
+
+// Certification types
+export interface CreateCertificationData {
+  name: string;
+  issuer: string;
+  date: Date | string;
+  imageUrl?: string;
+}
+
+export interface UpdateCertificationData {
+  name?: string;
+  issuer?: string;
+  date?: Date | string;
+  imageUrl?: string;
+}
+
+// Portfolio types
+export interface CreatePortfolioData {
+  title: string;
+  link: string;
+  description?: string;
+  imageUrl?: string;
+  order?: number;
+}
+
+export interface UpdatePortfolioData {
+  title?: string;
+  link?: string;
+  description?: string;
+  imageUrl?: string;
+  order?: number;
+}
+
+// Analytics types
+export interface AnalyticsData {
+  profileViews: number;
+  projectInvites: number;
+  ratingsAvg: number;
+  ratingsCount: number;
+  lastViewedAt?: Date;
+}
