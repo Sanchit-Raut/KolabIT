@@ -2,6 +2,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/kolabit';
+
+process.env.JWT_SECRET = process.env.JWT_SECRET || '752af32294d9b3bf1733d2fd39c4ce5247b342b587b79081143b399aa7bfe034f1c429ee192b3e723301add0a3126c113a9a6f4fa3b087035ed0d6885e14c969';
+
 interface EnvironmentConfig {
   // Server
   PORT: number;
@@ -37,9 +41,9 @@ const config: EnvironmentConfig = {
   PORT: parseInt(process.env.PORT || '5000', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
   
-  DATABASE_URL: process.env.DATABASE_URL || '',
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/kolabit',
   
-  JWT_SECRET: process.env.JWT_SECRET || '',
+  JWT_SECRET: process.env.JWT_SECRET || '752af32294d9b3bf1733d2fd39c4ce5247b342b587b79081143b399aa7bfe034f1c429ee192b3e723301add0a3126c113a9a6f4fa3b087035ed0d6885e14c969',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10),

@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  id                String           @id @default(cuid())
+  id                String           @id @default(dbgenerated("gen_random_uuid()::text"))
   email             String           @unique
   password          String
-  firstName         String
-  lastName          String
-  rollNumber        String?          @unique
+  firstName         String           @map("first_name")
+  lastName          String           @map("last_name")
+  rollNumber        String?          @unique @map("roll_number")
   department        String?
   year              Int?
   semester          Int?
   bio               String?
   avatar            String?
-  isVerified        Boolean          @default(false)
-  verificationToken String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  isVerified        Boolean          @default(false) @map("is_verified")
+  verificationToken String?          @map("verification_token")
+  resetToken        String?          @map("reset_token")
+  resetTokenExpiry  DateTime?        @map("reset_token_expiry")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
   comments          Comment[]
   joinRequests      JoinRequest[]
   likes             Like[]
@@ -47,12 +47,12 @@ model User {
 }
 
 model Skill {
-  id            String         @id @default(cuid())
+  id            String         @id @default(dbgenerated("gen_random_uuid()::text"))
   name          String         @unique
   category      String
   description   String?
   icon          String?
-  createdAt     DateTime       @default(now())
+  createdAt     DateTime       @default(now()) @map("created_at")
   projectSkills ProjectSkill[]
   userSkills    UserSkill[]
 
@@ -60,33 +60,35 @@ model Skill {
 }
 
 model UserSkill {
-  id           String @id @default(cuid())
-  userId       String
-  skillId      String
+  id           String @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId       String @map("user_id")
+  skillId      String @map("skill_id")
   proficiency  String
-  yearsOfExp   Int?
+  yearsOfExp   Int?   @map("years_of_exp")
   endorsements Int    @default(0)
   skill        Skill  @relation(fields: [skillId], references: [id])
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
   @@map("user_skills")
 }
 
 model Project {
-  id             String          @id @default(cuid())
+  id             String          @id @default(dbgenerated("gen_random_uuid()::text"))
   title          String
   description    String
   status         String
   type           String
-  maxMembers     Int?
-  startDate      DateTime?
-  endDate        DateTime?
-  githubUrl      String?
-  liveUrl        String?
-  ownerId        String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  maxMembers     Int?            @map("max_members")
+  startDate      DateTime?       @map("start_date")
+  endDate        DateTime?       @map("end_date")
+  githubUrl      String?         @map("github_url")
+  liveUrl        String?         @map("live_url")
+  ownerId        String          @map("owner_id")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
   joinRequests   JoinRequest[]
   members        ProjectMember[]
   requiredSkills ProjectSkill[]
@@ -97,104 +99,114 @@ model Project {
 }
 
 model ProjectMember {
-  id        String   @id @default(cuid())
-  projectId String
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
   role      String
-  joinedAt  DateTime @default(now())
+  joinedAt  DateTime @default(now()) @map("joined_at")
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
   @@map("project_members")
 }
 
 model ProjectSkill {
-  id        String  @id @default(cuid())
-  projectId String
-  skillId   String
+  id        String  @id @default(dbgenerated("gen_random_uuid()::text"))
+  projectId String  @map("project_id")
+  skillId   String  @map("skill_id")
   required  Boolean @default(true)
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   skill     Skill   @relation(fields: [skillId], references: [id])
 
   @@unique([projectId, skillId])
+  @@index([projectId])
   @@map("project_skills")
 }
 
 model Resource {
-  id          String           @id @default(cuid())
+  id          String           @id @default(dbgenerated("gen_random_uuid()::text"))
   title       String
   description String?
   type        String
   subject     String
   semester    Int?
-  fileUrl     String?
-  fileName    String?
-  fileSize    Int?
+  fileUrl     String?          @map("file_url")
+  fileName    String?          @map("file_name")
+  fileSize    Int?             @map("file_size")
   downloads   Int              @default(0)
-  uploaderId  String
-  createdAt   DateTime         @default(now())
+  uploaderId  String           @map("uploader_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
   ratings     ResourceRating[]
   uploader    User             @relation(fields: [uploaderId], references: [id])
 
+  @@index([uploaderId])
   @@map("resources")
 }
 
 model ResourceRating {
-  id         String   @id @default(cuid())
-  resourceId String
-  userId     String
+  id         String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  resourceId String   @map("resource_id")
+  userId     String   @map("user_id")
   rating     Int
   review     String?
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([resourceId, userId])
+  @@index([resourceId])
   @@map("resource_ratings")
 }
 
 model Post {
-  id        String    @id @default(cuid())
+  id        String    @id @default(dbgenerated("gen_random_uuid()::text"))
   title     String
   content   String
   type      String
   tags      String[]
-  authorId  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  authorId  String    @map("author_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   comments  Comment[]
   likes     Like[]
   author    User      @relation(fields: [authorId], references: [id])
 
+  @@index([authorId])
   @@map("posts")
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
   content   String
-  postId    String
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  postId    String   @map("post_id")
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   author    User     @relation(fields: [authorId], references: [id])
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  @@index([postId])
+  @@index([authorId])
   @@map("comments")
 }
 
 model Like {
-  id     String @id @default(cuid())
-  postId String
-  userId String
+  id     String @id @default(dbgenerated("gen_random_uuid()::text"))
+  postId String @map("post_id")
+  userId String @map("user_id")
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
   @@map("likes")
 }
 
 model Badge {
-  id          String      @id @default(cuid())
+  id          String      @id @default(dbgenerated("gen_random_uuid()::text"))
   name        String      @unique
   description String
   icon        String
@@ -206,85 +218,93 @@ model Badge {
 }
 
 model UserBadge {
-  id       String   @id @default(cuid())
-  userId   String
-  badgeId  String
-  earnedAt DateTime @default(now())
+  id       String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId   String   @map("user_id")
+  badgeId  String   @map("badge_id")
+  earnedAt DateTime @default(now()) @map("earned_at")
   badge    Badge    @relation(fields: [badgeId], references: [id])
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
+  @@index([userId])
   @@map("user_badges")
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId    String   @map("user_id")
   type      String
   title     String
   message   String
-  isRead    Boolean  @default(false)
+  isRead    Boolean  @default(false) @map("is_read")
   data      Json?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("notifications")
 }
 
 model JoinRequest {
-  id        String   @id @default(cuid())
-  projectId String
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
   message   String?
   status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
   @@map("join_requests")
 }
 
 model Task {
-  id          String    @id @default(cuid())
-  projectId   String
+  id          String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  projectId   String    @map("project_id")
   title       String
   description String?
   status      String
   priority    String
-  assigneeId  String?
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  assigneeId  String?   @map("assignee_id")
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([projectId])
+  @@index([assigneeId])
   @@map("tasks")
 }
 
 model Message {
-  id         String   @id @default(cuid())
+  id         String   @id @default(dbgenerated("gen_random_uuid()::text"))
   content    String
-  senderId   String
-  receiverId String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
   receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   sender     User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
+  @@index([senderId])
+  @@index([receiverId])
   @@map("messages")
 }
 
 model Certification {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId    String   @map("user_id")
   name      String
   issuer    String
   date      DateTime
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
@@ -292,15 +312,15 @@ model Certification {
 }
 
 model Portfolio {
-  id          String   @id @default(cuid())
-  userId      String
+  id          String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId      String   @map("user_id")
   title       String
   link        String
   description String?
-  imageUrl    String?
+  imageUrl    String?  @map("image_url")
   order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
@@ -308,14 +328,14 @@ model Portfolio {
 }
 
 model Analytic {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  profileViews Int      @default(0)
-  projectInvites Int    @default(0)
-  ratingsAvg   Float    @default(0.0)
-  ratingsCount Int      @default(0)
-  lastViewedAt DateTime?
-  updatedAt    DateTime @updatedAt
+  id             String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId         String    @unique @map("user_id")
+  profileViews   Int       @default(0) @map("profile_views")
+  projectInvites Int       @default(0) @map("project_invites")
+  ratingsAvg     Float     @default(0.0) @map("ratings_avg")
+  ratingsCount   Int       @default(0) @map("ratings_count")
+  lastViewedAt   DateTime? @map("last_viewed_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
