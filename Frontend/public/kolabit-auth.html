@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KolabIT — Auth Test</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #fff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --muted: #6b7280;
+    }
+    body {
+      font-family: Inter, system-ui, Arial;
+      background: var(--bg);
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+    }
+    .wrap {
+      width: 920px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(12, 20, 30, 0.06);
+    }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    label { display:block; font-size: 13px; color: var(--muted); margin-top:10px; }
+    input, textarea, select {
+      width:100%;
+      padding:10px;
+      border-radius:6px;
+      border:1px solid #e6e9ee;
+      margin-top:6px;
+      box-sizing:border-box;
+      font-size:14px;
+    }
+    textarea { min-height:72px; resize:vertical; }
+    .btn {
+      margin-top:12px;
+      display:inline-block;
+      padding:10px 12px;
+      background:var(--primary);
+      color:#fff;
+      border-radius:6px;
+      border: none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn.secondary { background:#6b7280; }
+    .btn:hover { background: var(--primary-hover); }
+    .row { display:flex; gap:8px; }
+    .muted { color: var(--muted); font-size:13px; margin-top:8px; }
+    .message { margin-top:12px; font-weight:600; }
+    .message.error { color: var(--danger); }
+    .message.success { color: var(--success); }
+    pre { background:#111827; color:#d1d5db; padding:10px; border-radius:6px; overflow:auto; max-height:240px; }
+    .small { font-size:13px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- LEFT: Signup / Login -->
+    <div class="card">
+      <h2>Test Auth (Frontend)</h2>
+      <p class="small">This page talks to your backend API. Configure <code>BASE_URL</code> below to point to your backend (e.g. <code>http://localhost:5000</code>).</p>
+
+      <hr style="margin:12px 0">
+
+      <!-- Toggle buttons -->
+      <div class="row">
+        <button class="btn" id="show-login">Show Login</button>
+        <button class="btn secondary" id="show-signup">Show Signup</button>
+      </div>
+
+      <!-- LOGIN form -->
+      <div id="login-form" style="margin-top:14px;">
+        <h3 style="margin:6px 0">Login</h3>
+        <label>Email
+          <input id="login-email" type="email" placeholder="email@example.com" />
+        </label>
+        <label>Password
+          <input id="login-password" type="password" placeholder="your password" />
+        </label>
+        <button class="btn" id="btn-login">Login</button>
+        <div id="login-msg" class="message"></div>
+      </div>
+
+      <!-- SIGNUP form -->
+      <div id="signup-form" style="display:none; margin-top:12px;">
+        <h3 style="margin:6px 0">Signup</h3>
+        <label>First name
+          <input id="signup-firstName" type="text" placeholder="First" />
+        </label>
+        <label>Last name
+          <input id="signup-lastName" type="text" placeholder="Last" />
+        </label>
+        <label>Email
+          <input id="signup-email" type="email" placeholder="email@example.com" />
+        </label>
+        <label>Password
+          <input id="signup-password" type="password" placeholder="At least 8 chars" />
+        </label>
+        <label>Roll number
+          <input id="signup-rollNumber" type="text" placeholder="TEST001" />
+        </label>
+        <label>Department
+          <input id="signup-department" type="text" placeholder="CSE" />
+        </label>
+        <div class="row">
+          <label style="flex:1">Year
+            <select id="signup-year">
+              <option value="">Select</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+            </select>
+          </label>
+          <label style="flex:1">Semester
+            <select id="signup-semester">
+              <option value="">Select</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </label>
+        </div>
+        <label>Bio (optional)
+          <textarea id="signup-bio" placeholder="Short bio"></textarea>
+        </label>
+
+        <button class="btn" id="btn-signup">Create account</button>
+        <div id="signup-msg" class="message"></div>
+      </div>
+
+      <hr style="margin:14px 0">
+
+      <div class="muted">
+        <strong>Note:</strong> This page uses <code>fetch</code> and sends requests with <code>credentials: 'include'</code> so it works whether your backend returns the JWT in a cookie or in the response body.
+      </div>
+    </div>
+
+    <!-- RIGHT: Response / profile -->
+    <div class="card">
+      <h2>Server Responses & Tests</h2>
+
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="btn-health">Health</button>
+        <button class="btn" id="btn-skills">Get /api/skills</button>
+        <button class="btn" id="btn-profile">Get /api/auth/profile</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small">Raw response (useful for debugging):</div>
+        <pre id="raw" aria-live="polite">No requests yet.</pre>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="small">Authenticated profile (if any):</div>
+        <pre id="profile">Not logged in.</pre>
+      </div>
+
+      <hr style="margin:12px 0">
+      <div class="small">Dev tips:
+        <ul style="margin:6px 0 0 18px; padding:0">
+          <li>Set <code>BASE_URL</code> below to your backend (e.g. <code>http://localhost:5000</code>).</li>
+          <li>If your backend uses cookie-based auth: make sure backend CORS has <code>origin</code> set to this page and <code>credentials:true</code>.</li>
+          <li>Open browser DevTools → Network to inspect requests & cookies.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // === CONFIGURE THIS: point to your running backend ===
+  // If backend runs at http://localhost:5000 (default), leave this as-is.
+  const BASE_URL = "http://localhost:5000";
+
+  // ----------------- UI wiring -----------------
+  const el = id => document.getElementById(id);
+  el("show-login").addEventListener("click", () => {
+    el("login-form").style.display = "";
+    el("signup-form").style.display = "none";
+    clearMessages();
+  });
+  el("show-signup").addEventListener("click", () => {
+    el("login-form").style.display = "none";
+    el("signup-form").style.display = "";
+    clearMessages();
+  });
+
+  function showRaw(obj){
+    try { el("raw").textContent = JSON.stringify(obj, null, 2); }
+    catch(e){ el("raw").textContent = String(obj); }
+  }
+  function showProfile(obj){
+    el("profile").textContent = JSON.stringify(obj, null, 2);
+  }
+  function clearMessages(){
+    ["login-msg","signup-msg"].forEach(id => { el(id).textContent=""; el(id).className="message"; });
+  }
+
+  // ----------------- Helpers -----------------
+  function setMsg(id, text, kind="error"){
+    const node = el(id);
+    node.textContent = text;
+    node.className = "message " + (kind === "success" ? "success" : "error");
+  }
+
+  async function requestJson(path, opts = {}) {
+    opts.headers = opts.headers || {};
+    // ensure JSON
+    if (opts.body && !(opts.body instanceof FormData)) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(opts.body);
+    }
+    // include credentials so cookie-based auth works
+    opts.credentials = opts.credentials ?? 'include';
+    const res = await fetch(BASE_URL + path, opts);
+    let data;
+    try { data = await res.json(); }
+    catch(e) { data = { status: res.status, text: await res.text() }; }
+    return { ok: res.ok, status: res.status, data, headers: [...res.headers] };
+  }
+
+  // ----------------- Login -----------------
+  el("btn-login").addEventListener("click", async () => {
+    clearMessages();
+    const email = el("login-email").value.trim();
+    const password = el("login-password").value;
+
+    if (!email || !password) return setMsg("login-msg","Email and password are required.");
+
+    setMsg("login-msg","Logging in...", "success");
+    try {
+      // POST /api/auth/login  (backend expects { email, password })
+      const r = await requestJson('/api/auth/login', {
+        method: 'POST',
+        body: { email, password }
+      });
+
+      showRaw(r);
+      if (!r.ok) {
+        setMsg("login-msg", r.data?.message || JSON.stringify(r.data) || `Status ${r.status}`);
+        return;
+      }
+
+      // If backend returned token in body, save to memory (not localStorage here).
+      // If cookie-based, the cookie is already stored by browser (credentials: include)
+      setMsg("login-msg","Login successful", "success");
+
+      // Immediately fetch profile to verify
+      const pf = await requestJson('/api/auth/profile', { method: 'GET' });
+      showRaw({ loginResult: r.data, profileResult: pf.data });
+      if (pf.ok) {
+        showProfile(pf.data);
+      } else {
+        showProfile({ error: pf.data });
+      }
+    } catch (err) {
+      setMsg("login-msg", String(err));
+      showRaw(String(err));
+    }
+  });
+
+  // ----------------- Signup -----------------
+  el("btn-signup").addEventListener("click", async () => {
+    clearMessages();
+    const data = {
+      firstName: el("signup-firstName").value.trim(),
+      lastName: el("signup-lastName").value.trim(),
+      email: el("signup-email").value.trim(),
+      password: el("signup-password").value,
+      rollNumber: el("signup-rollNumber").value.trim() || null,
+      department: el("signup-department").value.trim() || null,
+      year: el("signup-year").value ? parseInt(el("signup-year").value) : null,
+      semester: el("signup-semester").value ? parseInt(el("signup-semester").value) : null,
+      bio: el("signup-bio").value.trim() || null
+    };
+
+    // Basic validation
+    if (!data.firstName || !data.lastName || !data.email || !data.password) {
+      return setMsg("signup-msg","firstName, lastName, email and password are required.");
+    }
+    if (data.password.length < 6) {
+      return setMsg("signup-msg","Password should be at least 6 characters.");
+    }
+
+    setMsg("signup-msg","Creating account...", "success");
+
+    try {
+      const r = await requestJson('/api/auth/register', {
+        method: 'POST',
+        body: data
+      });
+      showRaw(r);
+
+      if (!r.ok) {
+        // backend returns validation errors in r.data
+        const errText = r.data?.message || JSON.stringify(r.data);
+        return setMsg("signup-msg", errText);
+      }
+
+      setMsg("signup-msg","Account created. You may now login.", "success");
+      // Optionally, auto-switch to login form and pre-fill email
+      el("show-login").click();
+      el("login-email").value = data.email;
+      el("login-password").value = data.password;
+    } catch (err) {
+      setMsg("signup-msg", String(err));
+      showRaw(String(err));
+    }
+  });
+
+  // ----------------- Quick server checks -----------------
+  el("btn-health").addEventListener("click", async () => {
+    try {
+      const r = await requestJson('/health');
+      showRaw(r);
+    } catch(err){ showRaw(String(err)); }
+  });
+
+  el("btn-skills").addEventListener("click", async () => {
+    try {
+      const r = await requestJson('/api/skills', { method:'GET' });
+      showRaw(r);
+    } catch(err){ showRaw(String(err)); }
+  });
+
+  el("btn-profile").addEventListener("click", async () => {
+    try {
+      const r = await requestJson('/api/auth/profile', { method:'GET' });
+      showRaw(r);
+      if (r.ok) showProfile(r.data);
+      else showProfile({ error: r.data });
+    } catch(err){ showRaw(String(err)); }
+  });
+
+  // Display initial
+  showRaw({ info: "Set BASE_URL at the top and click Health to test." });
+</script>
+</body>
+</html>
