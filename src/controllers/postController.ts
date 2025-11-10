@@ -48,6 +48,17 @@ export class PostController {
   });
 
   /**
+   * Get comments for a post
+   */
+  static getPostComments = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    const comments = await PostService.getPostComments(id);
+
+    ResponseUtils.success(res, comments);
+  });
+
+  /**
    * Update post
    */
   static updatePost = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

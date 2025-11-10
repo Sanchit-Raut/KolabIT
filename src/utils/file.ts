@@ -24,25 +24,41 @@ const storage = multer.diskStorage({
 // File filter function
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = [
+    // PDF
     'application/pdf',
+    
+    // Word documents
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    
+    // Excel documents
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    
+    // Text documents
     'text/plain',
+    'text/markdown',
+    
+    // Archives
     'application/zip',
-    'application/x-rar-compressed',
-    'video/mp4',
-    'video/avi',
-    'video/quicktime',
-    'image/jpeg',
-    'image/png',
-    'image/gif',
+    'application/x-zip-compressed',
   ];
 
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, DOC, DOCX, TXT, ZIP, RAR, MP4, AVI, MOV, JPG, PNG, and GIF files are allowed.'));
+  // Check file extension
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.md', '.txt', '.zip'];
+
+  if (!allowedExtensions.includes(ext)) {
+    return cb(new Error('Invalid file type. Only PDF, DOC, EXCEL, MD, TXT, or ZIP files are allowed.'));
   }
+
+  // Check MIME type
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Invalid file type. Please check if the file is corrupted.'));
+  }
+
+  // Additional validations can be added here
+  cb(null, true);
 };
 
 // Configure multer

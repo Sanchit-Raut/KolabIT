@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   semester INTEGER,
   bio TEXT,
   avatar TEXT,
-  is_verified BOOLEAN NOT NULL DEFAULT false,
+  is_verified BOOLEAN NOT NULL DEFAULT true,
   verification_token TEXT,
   reset_token TEXT,
   reset_token_expiry TIMESTAMPTZ,

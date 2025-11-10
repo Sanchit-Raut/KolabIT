@@ -14,6 +14,62 @@ import {
 
 export class ProjectService {
   /**
+   * Get projects by user ID
+   */
+  static async getProjectsByUser(userId: string) {
+    const projects = await prisma.project.findMany({
+      where: {
+        OR: [
+          { ownerId: userId },
+          {
+            members: {
+              some: {
+                userId: userId
+              }
+            }
+          }
+        ]
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          }
+        },
+        requiredSkills: {
+          include: {
+            skill: true
+          }
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            members: true,
+            tasks: true,
+          }
+        }
+      }
+    });
+
+    return projects;
+  }
+  /**
    * Create new project
    */
   static async createProject(
@@ -48,8 +104,8 @@ export class ProjectService {
         description: projectData.description,
         type: projectData.type,
         maxMembers: projectData.maxMembers,
-        startDate: projectData.startDate,
-        endDate: projectData.endDate,
+  startDate: projectData.startDate ? new Date(projectData.startDate) : undefined,
+  endDate: projectData.endDate ? new Date(projectData.endDate) : undefined,
         githubUrl: projectData.githubUrl,
         liveUrl: projectData.liveUrl,
         ownerId,

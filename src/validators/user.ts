@@ -1,4 +1,4 @@
-import { body, query } from 'express-validator';
+import { body, query, param } from 'express-validator';
 
 export const updateProfileValidation = [
   body('firstName')
@@ -77,16 +77,32 @@ export const searchUsersValidation = [
 ];
 
 export const addUserSkillValidation = [
+  // Skill IDs are UUIDs in the database, validate accordingly
   body('skillId')
-    .isString()
-    .trim()
-    .isLength({ min: 20, max: 30 })
+    .isUUID()
     .withMessage('Skill ID must be a valid ID'),
   
   body('proficiency')
     .isIn(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'])
     .withMessage('Proficiency must be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT'),
   
+  body('yearsOfExp')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Years of experience must be between 0 and 50'),
+];
+
+export const updateUserSkillValidation = [
+  // skillId comes from route params for update
+  param('skillId')
+    .isUUID()
+    .withMessage('Skill ID must be a valid ID'),
+
+  body('proficiency')
+    .optional()
+    .isIn(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'])
+    .withMessage('Proficiency must be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT'),
+
   body('yearsOfExp')
     .optional()
     .isInt({ min: 0, max: 50 })

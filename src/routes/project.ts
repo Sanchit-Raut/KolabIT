@@ -22,6 +22,7 @@ const router = Router();
 
 // Public routes
 router.get('/', searchLimiter, searchProjectsValidation, handleValidationErrors, ProjectController.getProjects);
+router.get('/user/:userId', ProjectController.getProjectsByUser);
 router.get('/:id', projectIdValidation, handleValidationErrors, ProjectController.getProjectById);
 router.get('/:id/members', projectIdValidation, handleValidationErrors, ProjectController.getProjectMembers);
 

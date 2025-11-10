@@ -1,0 +1,163 @@
+COMMUNITY POST error:
+
+
+
+
+{success: false, error: {message: "Validation failed", code: "VALIDATION_ERROR",…}}
+error
+: 
+{message: "Validation failed", code: "VALIDATION_ERROR",…}
+code
+: 
+"VALIDATION_ERROR"
+details
+: 
+[{field: "type", message: "Type must be one of: DISCUSSION, ANNOUNCEMENT, HELP, SHOWCASE",…}]
+0
+: 
+{field: "type", message: "Type must be one of: DISCUSSION, ANNOUNCEMENT, HELP, SHOWCASE",…}
+field
+: 
+"type"
+message
+: 
+"Type must be one of: DISCUSSION, ANNOUNCEMENT, HELP, SHOWCASE"
+value
+: 
+"general"
+message
+: 
+"Validation failed"
+success
+: 
+false
+
+
+CREATE PROJECT error:
+
+
+{success: false, error: {message: "Validation failed", code: "VALIDATION_ERROR",…}}
+error
+: 
+{message: "Validation failed", code: "VALIDATION_ERROR",…}
+code
+: 
+"VALIDATION_ERROR"
+details
+: 
+[{field: "type", message: "Type must be one of: ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP"},…]
+0
+: 
+{field: "type", message: "Type must be one of: ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP"}
+field
+: 
+"type"
+message
+: 
+"Type must be one of: ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP"
+1
+: 
+{field: "requiredSkills[0]", message: "Each required skill must be a valid ID", value: "JavaScript"}
+field
+: 
+"requiredSkills[0]"
+message
+: 
+"Each required skill must be a valid ID"
+value
+: 
+"JavaScript"
+2
+: 
+{field: "requiredSkills[1]", message: "Each required skill must be a valid ID", value: "Python"}
+field
+: 
+"requiredSkills[1]"
+message
+: 
+"Each required skill must be a valid ID"
+value
+: 
+"Python"
+3
+: 
+{field: "requiredSkills[2]", message: "Each required skill must be a valid ID", value: "React"}
+field
+: 
+"requiredSkills[2]"
+message
+: 
+"Each required skill must be a valid ID"
+value
+: 
+"React"
+message
+: 
+"Validation failed"
+success
+: 
+false
+
+
+PROFILE UPDATE ADD SKILL ERROR:
+
+{success: false, error: {message: "Validation failed", code: "VALIDATION_ERROR",…}}
+error
+: 
+{message: "Validation failed", code: "VALIDATION_ERROR",…}
+code
+: 
+"VALIDATION_ERROR"
+details
+: 
+[{field: "skillId", message: "Skill ID must be a valid ID", value: "sgwegw"},…]
+0
+: 
+{field: "skillId", message: "Skill ID must be a valid ID", value: "sgwegw"}
+field
+: 
+"skillId"
+message
+: 
+"Skill ID must be a valid ID"
+value
+: 
+"sgwegw"
+1
+: 
+{field: "proficiency", message: "Proficiency must be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT",…}
+field
+: 
+"proficiency"
+message
+: 
+"Proficiency must be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT"
+value
+: 
+2
+message
+: 
+"Validation failed"
+success
+: 
+false
+
+
+
+
+POST COMMENTS ERROR
+
+ {success: false,…}
+error
+: 
+{message: "Route /api/posts/1fe2ad0a-9b84-4853-b624-c162f834c873/comments not found",…}
+code
+: 
+"NOT_FOUND"
+message
+: 
+"Route /api/posts/1fe2ad0a-9b84-4853-b624-c162f834c873/comments not found"
+success
+: 
+false
+

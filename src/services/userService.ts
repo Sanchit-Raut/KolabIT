@@ -190,7 +190,37 @@ export class UserService {
     });
 
     if (existingUserSkill) {
-      throw new Error('User already has this skill');
+      // If user already has the skill, update proficiency/yearsOfExp instead of throwing
+      const updated = await prisma.userSkill.update({
+        where: {
+          userId_skillId: {
+            userId,
+            skillId: skillData.skillId,
+          },
+        },
+        data: {
+          proficiency: skillData.proficiency,
+          yearsOfExp: skillData.yearsOfExp,
+        },
+        include: { skill: true },
+      });
+
+      return {
+        id: updated.id,
+        userId: updated.userId,
+        skillId: updated.skillId,
+        proficiency: updated.proficiency as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT',
+        yearsOfExp: updated.yearsOfExp ?? undefined,
+        endorsements: updated.endorsements,
+        skill: {
+          id: updated.skill.id,
+          name: updated.skill.name,
+          category: updated.skill.category,
+          description: updated.skill.description ?? undefined,
+          icon: updated.skill.icon ?? undefined,
+          createdAt: updated.skill.createdAt,
+        },
+      };
     }
 
     // Create user skill

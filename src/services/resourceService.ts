@@ -99,6 +99,144 @@ export class ResourceService {
   }
 
   /**
+   * Get resources by user ID
+   */
+  static async getResourcesByUser(
+    userId: string,
+    params: ResourceSearchParams
+  ): Promise<PaginatedResponse<ResourceData>> {
+    const {
+      page = 1,
+      limit = 20,
+      subject,
+      type,
+      semester,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = params;
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: any = {
+      uploaderId: userId,
+    };
+
+    if (subject) {
+      where.subject = {
+        contains: subject,
+        mode: 'insensitive',
+      };
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (semester) {
+      where.semester = semester;
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { subject: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Build orderBy clause
+    const orderBy: any = {};
+    orderBy[sortBy] = sortOrder;
+
+    // Get resources and total count
+    const [resources, total] = await Promise.all([
+      prisma.resource.findMany({
+        where,
+        include: {
+          uploader: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              rollNumber: true,
+              department: true,
+              year: true,
+              semester: true,
+              bio: true,
+              avatar: true,
+              isVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          ratings: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                  rollNumber: true,
+                  department: true,
+                  year: true,
+                  semester: true,
+                  bio: true,
+                  avatar: true,
+                  isVerified: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+            },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy,
+      }),
+      prisma.resource.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    
+    return {
+      data: resources.map(resource => ({
+        id: resource.id,
+        title: resource.title,
+        description: resource.description ?? undefined,
+        type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
+        subject: resource.subject,
+        semester: resource.semester ?? undefined,
+        fileUrl: resource.fileUrl ?? undefined,
+        fileName: resource.fileName ?? undefined,
+        fileSize: resource.fileSize ?? undefined,
+        downloads: resource.downloads,
+        uploaderId: resource.uploaderId,
+        createdAt: resource.createdAt,
+        uploader: resource.uploader as any,
+        ratings: resource.ratings.map(rating => ({
+          id: rating.id,
+          resourceId: rating.resourceId,
+          userId: rating.userId,
+          rating: rating.rating,
+          review: rating.review ?? undefined,
+          user: rating.user as any,
+        })),
+      })),
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages,
+      },
+    };
+  }
+
+  /**
    * Get resources with filters
    */
   static async getResources(params: ResourceSearchParams): Promise<PaginatedResponse<ResourceData>> {
@@ -226,10 +364,8 @@ export class ResourceService {
       pagination: {
         page,
         limit,
-        total,
+        totalItems: total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
       },
     };
   }
