@@ -226,6 +226,136 @@ CREATE TABLE IF NOT EXISTS messages (
   CONSTRAINT fk_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+
+-- ============================================
+-- 1. SKILLS (with auto-generated UUIDs)
+-- ============================================
+
+-- Frontend Skills
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('React', 'Frontend', 'JavaScript library for building user interfaces', '⚛️', NOW()),
+('Next.js', 'Frontend', 'React framework for production', '▲', NOW()),
+('Vue.js', 'Frontend', 'Progressive JavaScript framework', '💚', NOW()),
+('Angular', 'Frontend', 'Platform for building web applications', '🅰️', NOW()),
+('HTML5', 'Frontend', 'Hypertext Markup Language', '🌐', NOW()),
+('CSS3', 'Frontend', 'Cascading Style Sheets', '🎨', NOW()),
+('Tailwind CSS', 'Frontend', 'Utility-first CSS framework', '🌊', NOW()),
+('Bootstrap', 'Frontend', 'CSS framework for responsive design', '🅱️', NOW()),
+('SASS/SCSS', 'Frontend', 'CSS preprocessor', '💅', NOW()),
+('TypeScript', 'Frontend', 'Typed superset of JavaScript', '🔷', NOW());
+
+-- Backend Skills
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('Node.js', 'Backend', 'JavaScript runtime environment', '🟢', NOW()),
+('Express.js', 'Backend', 'Web framework for Node.js', '🚂', NOW()),
+('Python', 'Backend', 'High-level programming language', '🐍', NOW()),
+('Django', 'Backend', 'Python web framework', '🎸', NOW()),
+('Flask', 'Backend', 'Lightweight Python web framework', '🧪', NOW()),
+('Java', 'Backend', 'Object-oriented programming language', '☕', NOW()),
+('Spring Boot', 'Backend', 'Java framework for microservices', '🍃', NOW()),
+('PHP', 'Backend', 'Server-side scripting language', '🐘', NOW()),
+('Laravel', 'Backend', 'PHP web framework', '🔺', NOW()),
+('Ruby on Rails', 'Backend', 'Web application framework', '💎', NOW());
+
+-- Database Skills
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('MySQL', 'Database', 'Relational database management system', '🐬', NOW()),
+('PostgreSQL', 'Database', 'Advanced open-source database', '🐘', NOW()),
+('MongoDB', 'Database', 'NoSQL document database', '🍃', NOW()),
+('Redis', 'Database', 'In-memory data structure store', '🔴', NOW()),
+('Firebase', 'Database', 'Google cloud platform', '🔥', NOW()),
+('Prisma', 'Database', 'Next-generation ORM', '💎', NOW());
+
+-- Mobile Development
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('React Native', 'Mobile', 'Framework for native mobile apps', '📱', NOW()),
+('Flutter', 'Mobile', 'UI toolkit for mobile apps', '🦋', NOW()),
+('Swift', 'Mobile', 'Programming language for iOS', '🍎', NOW()),
+('Kotlin', 'Mobile', 'Modern language for Android', '🤖', NOW()),
+('Android Development', 'Mobile', 'Native Android development', '🟢', NOW()),
+('iOS Development', 'Mobile', 'Native iOS development', '📱', NOW());
+
+-- DevOps & Cloud
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('Docker', 'DevOps', 'Containerization platform', '🐳', NOW()),
+('Kubernetes', 'DevOps', 'Container orchestration', '☸️', NOW()),
+('AWS', 'DevOps', 'Amazon Web Services', '☁️', NOW()),
+('Google Cloud', 'DevOps', 'Google Cloud Platform', '☁️', NOW()),
+('Azure', 'DevOps', 'Microsoft Azure', '☁️', NOW()),
+('Git', 'DevOps', 'Version control system', '📦', NOW()),
+('GitHub', 'DevOps', 'Code hosting platform', '🐙', NOW()),
+('GitLab', 'DevOps', 'DevOps platform', '🦊', NOW()),
+('Jenkins', 'DevOps', 'Automation server', '🔧', NOW()),
+('Linux', 'DevOps', 'Unix-like operating system', '🐧', NOW());
+
+-- Data Science & AI
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('Machine Learning', 'Data Science', 'AI and ML algorithms', '🤖', NOW()),
+('TensorFlow', 'Data Science', 'Machine learning framework', '🧠', NOW()),
+('PyTorch', 'Data Science', 'Deep learning framework', '🔥', NOW()),
+('Pandas', 'Data Science', 'Data analysis library', '🐼', NOW()),
+('NumPy', 'Data Science', 'Numerical computing library', '🔢', NOW()),
+('Data Analysis', 'Data Science', 'Analyzing and interpreting data', '📊', NOW()),
+('Data Visualization', 'Data Science', 'Visual data representation', '📈', NOW());
+
+-- Design Skills
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('Figma', 'Design', 'Collaborative design tool', '🎨', NOW()),
+('Adobe XD', 'Design', 'UI/UX design tool', '🎨', NOW()),
+('Photoshop', 'Design', 'Image editing software', '🖼️', NOW()),
+('Illustrator', 'Design', 'Vector graphics editor', '🎨', NOW()),
+('UI/UX Design', 'Design', 'User interface and experience design', '✨', NOW()),
+('Graphic Design', 'Design', 'Visual communication design', '🎨', NOW());
+
+-- Programming Languages
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('JavaScript', 'Programming', 'Dynamic programming language', '📜', NOW()),
+('C++', 'Programming', 'High-performance programming', '⚡', NOW()),
+('C Programming', 'Programming', 'General-purpose language', '©️', NOW()),
+('C#', 'Programming', '.NET programming language', '#️⃣', NOW()),
+('Go (Golang)', 'Programming', 'Systems programming language', '🔵', NOW()),
+('Rust', 'Programming', 'Memory-safe programming', '🦀', NOW()),
+('R Programming', 'Programming', 'Statistical computing language', '📊', NOW());
+
+-- Testing & Quality
+INSERT INTO skills (name, category, description, icon, created_at) VALUES
+('Jest', 'Testing', 'JavaScript testing framework', '🃏', NOW()),
+('Software Testing', 'Testing', 'Quality assurance and testing', '✅', NOW()),
+('Selenium', 'Testing', 'Browser automation', '🧪', NOW());
+
+-- ============================================
+-- 2. BADGES (UUID auto-generated by Prisma)
+-- ============================================
+
+-- Skill Badges
+INSERT INTO badges (name, description, icon, category, criteria) VALUES
+('Skill Starter', 'Added your first skill to profile', '🎯', 'SKILL', '{"minSkills": 1}'),
+('Skill Master', 'Added 5 or more skills', '🏆', 'SKILL', '{"minSkills": 5}'),
+('Skill Expert', 'Have an EXPERT level skill', '⭐', 'SKILL', '{"minProficiency": "EXPERT"}'),
+('Well Endorsed', 'Received 10 or more endorsements', '👍', 'SKILL', '{"minEndorsements": 10}');
+
+-- Contribution Badges
+INSERT INTO badges (name, description, icon, category, criteria) VALUES
+('Project Pioneer', 'Joined your first project', '🚀', 'SPECIAL', '{"type": "FIRST_PROJECT"}'),
+('Project Creator', 'Created your first project', '✨', 'CONTRIBUTION', '{"minProjects": 1}'),
+('Active Contributor', 'Joined 3 or more projects', '💪', 'CONTRIBUTION', '{"minProjects": 3}'),
+('Resource Sharer', 'Uploaded your first resource', '📚', 'SPECIAL', '{"type": "FIRST_RESOURCE"}'),
+('Helper', 'Uploaded 5 or more resources', '🤝', 'CONTRIBUTION', '{"minResources": 5}'),
+('Community Member', 'Created your first post', '💬', 'SPECIAL', '{"type": "FIRST_POST"}'),
+('Discussion Starter', 'Created 10 or more posts', '🗣️', 'CONTRIBUTION', '{"minPosts": 10}');
+
+-- Achievement Badges
+INSERT INTO badges (name, description, icon, category, criteria) VALUES
+('Popular Resource', 'Resource downloaded 50+ times', '🌟', 'ACHIEVEMENT', '{"minDownloads": 50}'),
+('Viral Content', 'Post received 20+ likes', '🔥', 'ACHIEVEMENT', '{"minLikes": 20}'),
+('Quality Creator', 'Received 10+ ratings on resources', '⭐', 'ACHIEVEMENT', '{"minRatings": 10}');
+
+-- Special Badges
+INSERT INTO badges (name, description, icon, category, criteria) VALUES
+('Verified User', 'Verified your email address', '✓', 'SPECIAL', '{"type": "VERIFIED_USER"}'),
+('Early Adopter', 'One of the first users of KolabIT', '🎖️', 'SPECIAL', '{"type": "EARLY_ADOPTER"}');
+
+
 -- Optional: add commonly useful indexes for FK columns (improves join performance)
 CREATE INDEX IF NOT EXISTS idx_user_skills_user_id ON user_skills(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_skills_skill_id ON user_skills(skill_id);
