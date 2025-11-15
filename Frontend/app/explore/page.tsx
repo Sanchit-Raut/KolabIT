@@ -7,22 +7,37 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, MapPin, MessageCircle, UserPlus, SlidersHorizontal, Loader2 } from "lucide-react"
+import { Search, BookOpen, MessageCircle, SlidersHorizontal, Loader2, GraduationCap, Users } from "lucide-react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
-import { userApi } from "@/lib/api"
+import { userApi, skillApi } from "@/lib/api"
 import type { User } from "@/lib/types"
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
-  const [experienceLevel, setExperienceLevel] = useState<string>("all")
-  const [availability, setAvailability] = useState<string>("all")
+  const [year, setYear] = useState<string>("all")
+  const [semester, setSemester] = useState<string>("all")
   const [department, setDepartment] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
   const [students, setStudents] = useState<User[]>([])
+  const [availableSkills, setAvailableSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  // Fetch available skills from database
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await skillApi.getAllSkills(1, 100)
+        const skills = response.data || []
+        setAvailableSkills(skills.map((skill: any) => skill.name))
+      } catch (err) {
+        console.error("[v0] Error fetching skills:", err)
+      }
+    }
+    fetchSkills()
+  }, [])
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -32,6 +47,8 @@ export default function ExplorePage() {
           search: searchQuery || undefined,
           skills: selectedSkills.length > 0 ? selectedSkills : undefined,
           department: department !== "all" ? department : undefined,
+          year: year !== "all" ? Number(year) : undefined,
+          semester: semester !== "all" ? Number(semester) : undefined,
         })
         // Handle both direct array and paginated response
         if (Array.isArray(data)) {
@@ -58,42 +75,9 @@ export default function ExplorePage() {
     }, 500)
 
     return () => clearTimeout(debounceTimer)
-  }, [searchQuery, selectedSkills, department])
+  }, [searchQuery, selectedSkills, department, year, semester])
 
-  const skillCategories = [
-    "Programming",
-    "Frontend",
-    "Backend",
-    "Mobile",
-    "Design",
-    "AI/ML",
-    "Data Science",
-    "DevOps",
-    "Database",
-  ]
-
-  const popularSkills = [
-    "JavaScript",
-    "Python",
-    "React",
-    "Node.js",
-    "Java",
-    "UI/UX Design",
-    "Machine Learning",
-    "SQL",
-    "AWS",
-    "Docker",
-    "Figma",
-    "Swift",
-    "Flutter",
-    "TensorFlow",
-    "PostgreSQL",
-  ]
-
-  const filteredStudents = students.filter((student) => {
-    const matchesAvailability = availability === "all"
-    return matchesAvailability
-  })
+  const filteredStudents = students
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]))
@@ -106,9 +90,9 @@ export default function ExplorePage() {
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Discover Student Skills</h1>
+          <h1 className="text-3xl font-bold mb-2">Discover Talented Students</h1>
           <p className="text-muted-foreground text-lg">
-            Find talented students to collaborate with on your next project
+            Find students to collaborate with based on skills, department, and academic year
           </p>
         </div>
 
@@ -130,13 +114,16 @@ export default function ExplorePage() {
             <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4" />
               Filters
-              {(selectedSkills.length > 0 || availability !== "all" || department !== "all") && (
+              {(selectedSkills.length > 0 || year !== "all" || semester !== "all" || department !== "all") && (
                 <Badge variant="secondary" className="ml-2">
-                  {selectedSkills.length + (availability !== "all" ? 1 : 0) + (department !== "all" ? 1 : 0)}
+                  {selectedSkills.length + (year !== "all" ? 1 : 0) + (semester !== "all" ? 1 : 0) + (department !== "all" ? 1 : 0)}
                 </Badge>
               )}
             </Button>
-            <div className="text-sm text-muted-foreground">{filteredStudents.length} students found</div>
+            <div className="text-sm text-muted-foreground">
+              <Users className="inline h-4 w-4 mr-1" />
+              {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} found
+            </div>
           </div>
 
           {/* Filters Panel */}
@@ -144,41 +131,30 @@ export default function ExplorePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Filter Results</CardTitle>
+                <CardDescription>Narrow down your search to find the perfect collaborator</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Popular Skills */}
-                <div>
-                  <h3 className="font-semibold mb-3">Popular Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {popularSkills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant={selectedSkills.includes(skill) ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-orange-500 hover:text-white transition-colors"
-                        onClick={() => toggleSkill(skill)}
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
+                {/* Skills */}
+                {availableSkills.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Skills</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {availableSkills.slice(0, 20).map((skill) => (
+                        <Badge
+                          key={skill}
+                          variant={selectedSkills.includes(skill) ? "default" : "outline"}
+                          className="cursor-pointer hover:bg-orange-500 hover:text-white transition-colors"
+                          onClick={() => toggleSkill(skill)}
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Other Filters */}
                 <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Availability</label>
-                    <Select value={availability} onValueChange={setAvailability}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Students</SelectItem>
-                        <SelectItem value="available">Available Now</SelectItem>
-                        <SelectItem value="limited">Limited Availability</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Department</label>
                     <Select value={department} onValueChange={setDepartment}>
@@ -187,25 +163,47 @@ export default function ExplorePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Departments</SelectItem>
-                        <SelectItem value="CS">Computer Science</SelectItem>
-                        <SelectItem value="IT">Information Technology</SelectItem>
-                        <SelectItem value="Design">Design</SelectItem>
-                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="Computer Engineering">Computer Engineering</SelectItem>
+                        <SelectItem value="Information Technology">Information Technology</SelectItem>
+                        <SelectItem value="Electronics">Electronics</SelectItem>
+                        <SelectItem value="Mechanical">Mechanical</SelectItem>
+                        <SelectItem value="Civil">Civil</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Experience Level</label>
-                    <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                    <label className="text-sm font-medium">Year</label>
+                    <Select value={year} onValueChange={setYear}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Levels</SelectItem>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="all">All Years</SelectItem>
+                        <SelectItem value="1">First Year</SelectItem>
+                        <SelectItem value="2">Second Year</SelectItem>
+                        <SelectItem value="3">Third Year</SelectItem>
+                        <SelectItem value="4">Fourth Year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Semester</label>
+                    <Select value={semester} onValueChange={setSemester}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Semesters</SelectItem>
+                        <SelectItem value="1">Semester 1</SelectItem>
+                        <SelectItem value="2">Semester 2</SelectItem>
+                        <SelectItem value="3">Semester 3</SelectItem>
+                        <SelectItem value="4">Semester 4</SelectItem>
+                        <SelectItem value="5">Semester 5</SelectItem>
+                        <SelectItem value="6">Semester 6</SelectItem>
+                        <SelectItem value="7">Semester 7</SelectItem>
+                        <SelectItem value="8">Semester 8</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -216,9 +214,9 @@ export default function ExplorePage() {
                   variant="outline"
                   onClick={() => {
                     setSelectedSkills([])
-                    setAvailability("all")
+                    setYear("all")
+                    setSemester("all")
                     setDepartment("all")
-                    setExperienceLevel("all")
                   }}
                 >
                   Clear All Filters
@@ -251,46 +249,66 @@ export default function ExplorePage() {
                 filteredStudents.map((student) => (
                   <Card key={student.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.firstName} />
-                            <AvatarFallback>
-                              {student.firstName?.[0]}
-                              {student.lastName?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <CardTitle className="text-lg">
-                              {student.firstName} {student.lastName}
-                            </CardTitle>
-                            <CardDescription>@{student.email?.split("@")[0]}</CardDescription>
+                      <div className="flex items-start gap-3 mb-3">
+                        <Avatar className="w-14 h-14">
+                          <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.firstName} />
+                          <AvatarFallback className="bg-orange-100 text-orange-700 text-lg">
+                            {student.firstName?.[0]}{student.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">
+                            {student.firstName} {student.lastName}
+                          </h3>
+                          <div className="flex flex-col gap-1 mt-1">
+                            {student.department && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <BookOpen className="h-3 w-3" />
+                                {student.department}
+                              </div>
+                            )}
+                            {(student.year || student.semester) && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <GraduationCap className="h-3 w-3" />
+                                {student.year && `Year ${student.year}`}
+                                {student.year && student.semester && ' • '}
+                                {student.semester && `Sem ${student.semester}`}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {student.department || "Department"}
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{student.bio || "No bio added"}</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {student.bio || "No bio added"}
+                      </p>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
+                      {/* Skills */}
+                      {student.skills && student.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {student.skills.slice(0, 3).map((skill: any) => (
+                            <Badge key={skill.id} variant="secondary" className="text-xs">
+                              {skill.skill?.name || skill.name}
+                            </Badge>
+                          ))}
+                          {student.skills.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{student.skills.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
                       {/* Action Buttons */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 pt-2">
                         <Button asChild className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
                           <Link href={`/profile/${student.id}`}>View Profile</Link>
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <MessageCircle className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <UserPlus className="h-4 w-4" />
+                        <Button asChild size="sm" variant="outline" title="Send Message">
+                          <Link href={`/messages/${student.id}`}>
+                            <MessageCircle className="h-4 w-4" />
+                          </Link>
                         </Button>
                       </div>
                     </CardContent>
@@ -310,7 +328,8 @@ export default function ExplorePage() {
                     onClick={() => {
                       setSearchQuery("")
                       setSelectedSkills([])
-                      setAvailability("all")
+                      setYear("all")
+                      setSemester("all")
                       setDepartment("all")
                     }}
                   >

@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Mail, MapPin, BookOpen, Code, Loader2, MessageCircle, ExternalLink } from "lucide-react"
+import { Mail, BookOpen, Code, Loader2, MessageCircle, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 
@@ -135,7 +135,7 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
                   {user.department && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
+                      <BookOpen className="h-4 w-4" />
                       {user.department}
                     </div>
                   )}
