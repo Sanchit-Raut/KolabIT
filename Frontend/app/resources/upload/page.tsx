@@ -199,6 +199,14 @@ export default function UploadResourcePage() {
   if (youtubeUrl.trim()) formData.append("youtubeUrl", youtubeUrl.trim())
   if (articleLinks.length > 0) formData.append("articleLinks", JSON.stringify(articleLinks))
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL as string) || "http://localhost:5000";
+      const token = tokenManager.getToken() || localStorage.getItem("token") || localStorage.getItem("auth_token")
+      if (!token) {
+        toast({ title: "Error", description: "You must be logged in to upload resources", variant: "destructive" })
+        setIsSubmitting(false)
+        return
+      }
+
       const xhr = new XMLHttpRequest();
       const progressToast = toast({
         title: "Uploading...",
@@ -219,37 +227,49 @@ export default function UploadResourcePage() {
       // Set up completion handler
       xhr.onload = () => {
         progressToast.dismiss();
-        if (xhr.status === 200) {
+        setIsSubmitting(false);
+        
+        if (xhr.status === 200 || xhr.status === 201) {
           toast({
             title: "Success",
             description: "Resource uploaded successfully",
           });
-          router.push("/resources");
+          setTimeout(() => router.push("/resources"), 1500);
         } else {
-          const error = JSON.parse(xhr.responseText);
-          throw new Error(error.message || "Failed to upload resource");
+          try {
+            const error = JSON.parse(xhr.responseText);
+            toast({
+              title: "Error",
+              description: error.message || "Failed to upload resource",
+              variant: "destructive",
+            });
+          } catch {
+            toast({
+              title: "Error",
+              description: "Failed to upload resource",
+              variant: "destructive",
+            });
+          }
         }
       };
 
       // Set up error handler
       xhr.onerror = () => {
         progressToast.dismiss();
-        throw new Error("Network error occurred while uploading");
+        setIsSubmitting(false);
+        toast({
+          title: "Error",
+          description: "Network error occurred while uploading",
+          variant: "destructive",
+        });
       };
 
-  // Send the request to backend API (use NEXT_PUBLIC_API_URL if provided)
-  const apiBase = (process.env.NEXT_PUBLIC_API_URL as string) || "http://localhost:5000";
-  xhr.open("POST", `${apiBase}/api/resources`);
-      const token = tokenManager.getToken() || localStorage.getItem("token") || localStorage.getItem("auth_token")
-      if (!token) {
-        progressToast.dismiss();
-        toast({ title: "Error", description: "You must be logged in to upload resources", variant: "destructive" })
-        setIsSubmitting(false)
-        return
-      }
+      // Send the request
+      xhr.open("POST", `${apiBase}/api/resources`);
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.send(formData);
     } catch (err) {
+      setIsSubmitting(false)
       const errorMsg = err instanceof Error ? err.message : "Failed to upload resource"
       console.error("[v0] Error uploading resource:", err)
       toast({
@@ -257,8 +277,6 @@ export default function UploadResourcePage() {
         description: errorMsg,
         variant: "destructive",
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
