@@ -158,7 +158,7 @@ model Project {
   id          String   @id @default(cuid())
   title       String
   description String
-  status      String   // PLANNING, ACTIVE, COMPLETED, CANCELLED
+  status      String   // RECRUITING, ACTIVE, COMPLETED, CANCELLED
   type        String   // ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP
   maxMembers  Int?
   startDate   DateTime?
@@ -176,7 +176,7 @@ model Project {
 ```
 
 **Additional Features Beyond Class Diagram:**
-- ✅ Project status tracking (PLANNING, ACTIVE, COMPLETED, CANCELLED)
+- ✅ Project status tracking (RECRUITING, ACTIVE, COMPLETED, CANCELLED)
 - ✅ Task management system
 - ✅ Join request approval workflow
 - ✅ GitHub and Live URL links
@@ -567,7 +567,7 @@ The implementation includes several features **not in the class diagram** but va
 
 2. **✅ Advanced Project Management**
    - Task assignment and tracking
-   - Project status workflow (PLANNING → ACTIVE → COMPLETED)
+   - Project status workflow (RECRUITING → ACTIVE → COMPLETED)
    - Start/end dates
    - GitHub/Live URL integration
 

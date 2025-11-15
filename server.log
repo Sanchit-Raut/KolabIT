@@ -2,13 +2,12 @@
 > kolabit-backend@1.0.0 dev
 > ts-node-dev --respawn --transpile-only src/app.ts
 
-[INFO] 22:36:08 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
+[INFO] 14:44:25 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
 🚀 KolabIT API server running on port 5000
-📊 Environment: test
-🔗 Client URL: http://localhost:5174
-::1 - - [02/Nov/2025:17:06:21 +0000] "GET /health HTTP/1.1" 200 108 "-" "-"
-::1 - - [02/Nov/2025:17:06:21 +0000] "POST /api/auth/register HTTP/1.1" 400 277 "-" "-"
-::1 - - [02/Nov/2025:17:06:21 +0000] "GET /api/users HTTP/1.1" 401 86 "-" "-"
-::1 - - [02/Nov/2025:17:06:21 +0000] "GET /api/skills HTTP/1.1" 200 7139 "-" "-"
-::1 - - [02/Nov/2025:17:06:21 +0000] "GET /api/projects HTTP/1.1" 200 3679 "-" "-"
-::1 - - [02/Nov/2025:17:06:21 +0000] "GET /api/posts HTTP/1.1" 200 799 "-" "-"
+📊 Environment: development
+🔗 Client URL: http://localhost:3000
+prisma:query SELECT "public"."users"."id", "public"."users"."email", "public"."users"."password", "public"."users"."first_name", "public"."users"."last_name", "public"."users"."roll_number", "public"."users"."department", "public"."users"."year", "public"."users"."semester", "public"."users"."bio", "public"."users"."avatar", "public"."users"."is_verified", "public"."users"."verification_token", "public"."users"."reset_token", "public"."users"."reset_token_expiry", "public"."users"."created_at", "public"."users"."updated_at" FROM "public"."users" WHERE ("public"."users"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+Error: Error: Invalid email or password
+    at AuthService.login (/home/omen/Desktop/Projects/Mini Project/src/services/authService.ts:112:13)
+    at /home/omen/Desktop/Projects/Mini Project/src/controllers/authController.ts:25:20
+::1 - - [13/Nov/2025:09:15:40 +0000] "POST /api/auth/login HTTP/1.1" 500 89 "-" "curl/8.17.0"
