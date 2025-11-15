@@ -10,12 +10,33 @@ export class ResourceController {
    */
   static createResource = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const uploaderId = (req as any).user.id;
-    const resourceData: CreateResourceData = {
+    const resourceData: any = {
       ...req.body,
       fileUrl: req.file ? `/uploads/${req.file.filename}` : req.body.fileUrl,
       fileName: req.file ? req.file.originalname : req.body.fileName,
       fileSize: req.file ? req.file.size : req.body.fileSize,
     };
+    
+    // Parse semester to integer if provided
+    if (resourceData.semester) {
+      const parsed = parseInt(String(resourceData.semester), 10);
+      resourceData.semester = isNaN(parsed) ? undefined : parsed;
+    }
+
+    // Parse articleLinks if sent as a JSON string (from form-data)
+    if (resourceData.articleLinks && typeof resourceData.articleLinks === 'string') {
+      try {
+        resourceData.articleLinks = JSON.parse(resourceData.articleLinks);
+      } catch (err) {
+        console.error('[v0] Failed to parse articleLinks:', err);
+        resourceData.articleLinks = undefined;
+      }
+    }
+
+    // Ensure youtubeUrl is a string (not an object or other type)
+    if (resourceData.youtubeUrl && typeof resourceData.youtubeUrl !== 'string') {
+      resourceData.youtubeUrl = String(resourceData.youtubeUrl);
+    }
     
     const resource = await ResourceService.createResource(uploaderId, resourceData);
     
@@ -64,11 +85,32 @@ export class ResourceController {
   static updateResource = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req as any).user.id;
-    const updateData: UpdateResourceData = req.body;
+    const updateData: any = req.body;
     
     if (!id) {
       ResponseUtils.error(res, 'Resource ID is required', 'VALIDATION_ERROR', 400);
       return;
+    }
+
+    // Parse semester to integer if provided
+    if (updateData.semester) {
+      const parsed = parseInt(String(updateData.semester), 10);
+      updateData.semester = isNaN(parsed) ? undefined : parsed;
+    }
+
+    // Parse articleLinks if sent as a JSON string
+    if (updateData.articleLinks && typeof updateData.articleLinks === 'string') {
+      try {
+        updateData.articleLinks = JSON.parse(updateData.articleLinks);
+      } catch (err) {
+        console.error('[v0] Failed to parse articleLinks:', err);
+        updateData.articleLinks = undefined;
+      }
+    }
+
+    // Ensure youtubeUrl is a string if provided
+    if (updateData.youtubeUrl && typeof updateData.youtubeUrl !== 'string') {
+      updateData.youtubeUrl = String(updateData.youtubeUrl);
     }
     
     const resource = await ResourceService.updateResource(id, userId, updateData);

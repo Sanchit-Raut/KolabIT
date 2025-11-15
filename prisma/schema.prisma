@@ -127,23 +127,28 @@ model ProjectSkill {
 }
 
 model Resource {
-  id          String           @id @default(dbgenerated("gen_random_uuid()::text"))
-  title       String
-  description String?
-  type        String
-  subject     String
-  semester    Int?
-  fileUrl     String?          @map("file_url")
-  fileName    String?          @map("file_name")
-  fileSize    Int?             @map("file_size")
-  downloads   Int              @default(0)
-  uploaderId  String           @map("uploader_id")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  ratings     ResourceRating[]
-  uploader    User             @relation(fields: [uploaderId], references: [id])
+  id           String    @id @default(dbgenerated("gen_random_uuid()::text")) @db.Text
+  title        String
+  description  String?
+  type         String
+  subject      String
+  semester     Int?
+  fileUrl      String?   @map("file_url")
+  fileName     String?   @map("file_name")
+  fileSize     Int?      @map("file_size")
+  youtubeUrl   String?   @map("youtube_url")        // <--- add this if missing
+  articleLinks Json?     @map("article_links")      // <--- add this if missing
+  downloads    Int       @default(0)
+  views        Int       @default(0)
+  likes        Int       @default(0)
+  uploaderId   String    @map("uploader_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  @@index([uploaderId])
+  ratings      ResourceRating[]
+  uploader     User      @relation(fields: [uploaderId], references: [id])
   @@map("resources")
+  @@index([uploaderId])
 }
 
 model ResourceRating {

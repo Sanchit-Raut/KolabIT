@@ -11,10 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Upload, X, FileText, Code, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { ArrowLeft, Upload, X, FileText, Code, Loader2, AlertCircle, CheckCircle, Video, Link as LinkIcon, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { resourceApi } from "@/lib/api"
+import { resourceApi, tokenManager } from "@/lib/api"
 
 interface UploadFile {
   file: File
@@ -34,12 +34,18 @@ export default function UploadResourcePage() {
   const [semester, setSemester] = useState("")
   const [resourceType, setResourceType] = useState("")
   const [uploadFile, setUploadFile] = useState<UploadFile | null>(null)
+  const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [articleLinks, setArticleLinks] = useState<{ title: string; url: string }[]>([])
+  const [newLinkTitle, setNewLinkTitle] = useState("")
+  const [newLinkUrl, setNewLinkUrl] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const resourceTypes = [
     { value: "PDF", label: "PDF Document", icon: FileText },
     { value: "DOC", label: "Word Document", icon: FileText },
     { value: "CODE", label: "Code/Archive", icon: Code },
+    { value: "VIDEO", label: "YouTube Video", icon: Video },
+    { value: "LINK", label: "Article/Link", icon: LinkIcon },
     { value: "MD", label: "Markdown", icon: FileText },
   ]
 
@@ -169,10 +175,11 @@ export default function UploadResourcePage() {
       return
     }
 
-    if (!uploadFile) {
+    // Require at least one of: file, youtube url, or article links
+    if (!uploadFile && !youtubeUrl.trim() && articleLinks.length === 0) {
       toast({
         title: "Error",
-        description: "Please upload a file",
+        description: "Please upload a file or provide a YouTube URL or at least one article link",
         variant: "destructive",
       })
       return
@@ -188,7 +195,9 @@ export default function UploadResourcePage() {
       if (semester) {
         formData.append("semester", String(Number.parseInt(semester)))
       }
-      formData.append("file", uploadFile.file)
+  if (uploadFile) formData.append("file", uploadFile.file)
+  if (youtubeUrl.trim()) formData.append("youtubeUrl", youtubeUrl.trim())
+  if (articleLinks.length > 0) formData.append("articleLinks", JSON.stringify(articleLinks))
 
       const xhr = new XMLHttpRequest();
       const progressToast = toast({
@@ -228,9 +237,17 @@ export default function UploadResourcePage() {
         throw new Error("Network error occurred while uploading");
       };
 
-      // Send the request
-      xhr.open("POST", "/api/resources");
-      xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("token")}`);
+  // Send the request to backend API (use NEXT_PUBLIC_API_URL if provided)
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL as string) || "http://localhost:5000";
+  xhr.open("POST", `${apiBase}/api/resources`);
+      const token = tokenManager.getToken() || localStorage.getItem("token") || localStorage.getItem("auth_token")
+      if (!token) {
+        progressToast.dismiss();
+        toast({ title: "Error", description: "You must be logged in to upload resources", variant: "destructive" })
+        setIsSubmitting(false)
+        return
+      }
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.send(formData);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to upload resource"
@@ -243,6 +260,21 @@ export default function UploadResourcePage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const addArticleLink = () => {
+    if (!newLinkUrl.trim()) {
+      toast({ title: "Error", description: "Please provide a link URL", variant: "destructive" })
+      return
+    }
+
+    setArticleLinks(prev => [...prev, { title: newLinkTitle || newLinkUrl, url: newLinkUrl }])
+    setNewLinkTitle("")
+    setNewLinkUrl("")
+  }
+
+  const removeArticleLink = (index: number) => {
+    setArticleLinks(prev => prev.filter((_, i) => i !== index))
   }
 
   if (loading || !user) {
@@ -288,6 +320,61 @@ export default function UploadResourcePage() {
             </p>
           </CardContent>
         </Card>
+
+          {/* Video / Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Video & Article Links</CardTitle>
+              <CardDescription>Add a YouTube URL or one or more article links (optional)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="youtube">YouTube URL</Label>
+                <Input
+                  id="youtube"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Article Links</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Link title (optional)"
+                    value={newLinkTitle}
+                    onChange={(e) => setNewLinkTitle(e.target.value)}
+                  />
+                  <Input
+                    placeholder="https://example.com/article"
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                  />
+                  <Button type="button" onClick={addArticleLink} variant="outline">
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {articleLinks.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {articleLinks.map((link, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <div className="text-sm font-medium">{link.title}</div>
+                          <a className="text-xs text-muted-foreground" href={link.url} target="_blank" rel="noreferrer">{link.url}</a>
+                        </div>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArticleLink(idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Resource Type Selection */}
