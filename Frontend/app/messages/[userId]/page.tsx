@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { messageApi, userApi } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
-import { Send, ArrowLeft, Loader2 } from "lucide-react"
+import { Send, ArrowLeft, Loader2, MessageCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import type { User } from "@/lib/types"
 
@@ -219,12 +219,16 @@ export default function MessagesPage() {
           )}
         </div>
 
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-[600px] flex flex-col shadow-lg">
           <ScrollArea className="flex-1 p-4 overflow-y-auto">
             {messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">
-                  No messages yet. Start the conversation!
+              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mb-4">
+                  <MessageCircle className="h-10 w-10 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No messages yet</h3>
+                <p className="text-muted-foreground text-sm">
+                  Start the conversation by sending a message below
                 </p>
               </div>
             ) : (
@@ -234,12 +238,20 @@ export default function MessagesPage() {
                   const myUserId = user?.id
                   const messageSenderId = message.senderId
                   const isCurrentUser = myUserId && messageSenderId && (messageSenderId === myUserId)
+                  const senderName = isCurrentUser 
+                    ? user?.firstName 
+                    : message.sender?.name?.split(' ')[0] || otherUser?.firstName || 'User'
                   
                   return (
                     <div
                       key={message.id}
-                      className={`flex w-full ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                      className={`flex flex-col w-full ${isCurrentUser ? "items-end" : "items-start"}`}
                     >
+                      {/* Sender name */}
+                      <p className={`text-xs text-gray-500 mb-1 px-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                        {senderName}
+                      </p>
+                      
                       <div
                         className={`max-w-[75%] min-w-[100px] ${
                           isCurrentUser
@@ -270,7 +282,7 @@ export default function MessagesPage() {
 
           <form
             onSubmit={handleSendMessage}
-            className="border-t p-4 flex items-center gap-2 bg-background"
+            className="border-t p-4 flex items-center gap-3 bg-gray-50/50"
           >
             <Input
               ref={inputRef}
@@ -278,7 +290,7 @@ export default function MessagesPage() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               disabled={sending}
-              className="flex-1"
+              className="flex-1 bg-white"
               autoComplete="off"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

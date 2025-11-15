@@ -1,10 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import config from '../config/environment';
 
-// General API rate limiting - More lenient for development
+// General API rate limiting - Very lenient for development
 export const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute (shorter window)
-  max: 60, // 60 requests per minute (1 per second average)
+  windowMs: 60 * 1000, // 1 minute
+  max: config.NODE_ENV === 'development' ? 300 : 100, // 300 requests per minute in dev, 100 in prod
   message: {
     success: false,
     error: {
@@ -15,15 +15,19 @@ export const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    // Skip rate limiting for message endpoints in development
-    return process.env.NODE_ENV === 'development' && req.path.startsWith('/api/messages')
+    // Skip rate limiting completely in development for certain endpoints
+    return config.NODE_ENV === 'development' && (
+      req.path.startsWith('/api/messages') ||
+      req.path.startsWith('/api/notifications') ||
+      req.path.startsWith('/api/users')
+    )
   },
 });
 
 // Strict rate limiting for auth endpoints
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 25, // 25 attempts per window (increased from 5)
+  max: config.NODE_ENV === 'development' ? 100 : 25, // 100 in dev, 25 in prod
   message: {
     success: false,
     error: {
@@ -54,7 +58,7 @@ export const passwordResetLimiter = rateLimit({
 // Rate limiting for file uploads
 export const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // 20 uploads per hour
+  max: config.NODE_ENV === 'development' ? 50 : 20, // 50 in dev, 20 in prod
   message: {
     success: false,
     error: {
@@ -69,7 +73,7 @@ export const uploadLimiter = rateLimit({
 // Rate limiting for search endpoints
 export const searchLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // 30 searches per minute
+  max: config.NODE_ENV === 'development' ? 100 : 30, // 100 in dev, 30 in prod
   message: {
     success: false,
     error: {
