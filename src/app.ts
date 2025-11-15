@@ -21,6 +21,7 @@ import notificationRoutes from './routes/notification';
 import certificationRoutes from './routes/certification';
 import portfolioRoutes from './routes/portfolio';
 import analyticsRoutes from './routes/analytics';
+import messageRoutes from './routes/message';
 
 const app = express();
 const server = createServer(app);
@@ -72,6 +73,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/certifications', certificationRoutes);
 app.use('/api/portfolios', portfolioRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

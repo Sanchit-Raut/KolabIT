@@ -1,5 +1,14 @@
 import { body, query, param } from 'express-validator';
 
+export const userIdValidation = [
+  param('userId')
+    .trim()
+    .notEmpty()
+    .withMessage('User ID is required')
+    .isUUID()
+    .withMessage('Invalid user ID format')
+];
+
 export const createResourceValidation = [
   body('title')
     .trim()

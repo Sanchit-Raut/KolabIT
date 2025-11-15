@@ -17,6 +17,8 @@ const router = Router();
 
 // Public routes
 router.get('/', searchLimiter, searchPostsValidation, handleValidationErrors, PostController.getPosts);
+// Comments (public read)
+router.get('/:id/comments', postIdValidation, handleValidationErrors, PostController.getPostComments);
 router.get('/:id', postIdValidation, handleValidationErrors, PostController.getPostById);
 
 // Protected routes

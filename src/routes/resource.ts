@@ -10,6 +10,7 @@ import {
   searchResourcesValidation,
   resourceRatingValidation,
   resourceIdValidation,
+  userIdValidation,
 } from '../validators/resource';
 
 const router = Router();
@@ -27,6 +28,7 @@ router.use(authenticateToken);
 
 // Resource CRUD
 router.post('/', uploadLimiter, upload.single('file'), createResourceValidation, handleValidationErrors, ResourceController.createResource);
+router.get('/user/:userId', userIdValidation, searchResourcesValidation, handleValidationErrors, ResourceController.getResourcesByUser);
 router.put('/:id', resourceIdValidation, updateResourceValidation, handleValidationErrors, ResourceController.updateResource);
 router.delete('/:id', resourceIdValidation, ResourceController.deleteResource);
 

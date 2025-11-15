@@ -100,6 +100,17 @@ export class ProjectController {
   });
 
   /**
+   * Get projects by user ID
+   */
+  static getProjectsByUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { userId } = req.params;
+    
+    const projects = await ProjectService.getProjectsByUser(userId);
+    
+    ResponseUtils.success(res, projects);
+  });
+
+  /**
    * Get project members
    */
   static getProjectMembers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

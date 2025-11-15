@@ -100,6 +100,27 @@ export class ResourceController {
   });
 
   /**
+   * Get resources by user ID
+   */
+  static getResourcesByUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { userId } = req.params;
+    const searchParams: ResourceSearchParams = {
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 20,
+      subject: req.query.subject as string,
+      type: req.query.type as string,
+      semester: req.query.semester ? parseInt(req.query.semester as string) : undefined,
+      search: req.query.search as string,
+      sortBy: req.query.sortBy as string || 'createdAt',
+      sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc',
+    };
+    
+    const result = await ResourceService.getResourcesByUser(userId, searchParams);
+    
+    ResponseUtils.success(res, result);
+  });
+
+  /**
    * Rate resource
    */
   static rateResource = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

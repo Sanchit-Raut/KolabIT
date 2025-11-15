@@ -1,0 +1,35 @@
+JWT_SECRET = "752af32294d9b3bf1733d2fd39c4ce5247b342b587b79081143b399aa7bfe034f1c429ee192b3e723301add0a3126c113a9a6f4fa3b087035ed0d6885e14c969"
+
+DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/kolabit"
+
+
+
+i need you to make the following changes and fix the following bugs in the website, keep the backend docs in mind. 
+1. Post comments
+make the share comment icon working properly, it is not working
+can not add any comment to the community post, whenever i click on add nothing happens, make adding comments work.
+there is no use of join discussion button in that, remove that button
+likes are not maintained, after clicking like and reloading webpage, the like is gone completely
+after going to user's profile, there is a message button, after clicking it, nothing happens, so make it work, after clicking message, a chatbox should be opened and message shoud be sent to the user and user also must be notified about it. 
+remove the endorse button visible at the user profile,
+
+
+2. Profile changes
+on user profile, projects and resources are not fetched from the DB, i want everything fetched from DB, so make the routs and fetch that data from the DB everytime for the user
+on edit profile option, give input fields to add all the information about user which is present in the DB and which can be taken by use like semester, year etc.
+on edit profile, we can see the current skills present, and its proefficiency, and experience but cant see its name, i want its name visible
+fix the profile photo thing, make it working, ask user to upload profile photo in jpg and png format only under 5 mb.
+
+3. Resource Tab
+the resource tab is completely inactive. make it working, ask user to upload the file only in pdf, docs excel md or any textual file but no images or videos, keep a limit of 40mb file upload size
+
+4. Projects tab
+after clicking on view project details, static data is only visible, i want the actual project data to be visible which is stored in DB
+also make the funtionalities of join project working, after click on join, the author should be notified about the project join requesst and he should approve/ reject the approval.
+
+5. notification
+fix the notification page, it is looking completely static rightnow . i want all the notifications of users and eveerything visible at that page and it should be actual data preesent inside the DB.
+
+6. /explore 
+fails to load the students in explore page
+

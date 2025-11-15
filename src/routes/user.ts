@@ -6,6 +6,7 @@ import { handleValidationErrors } from '../middleware/validation';
 import {
   searchUsersValidation,
   addUserSkillValidation,
+  updateUserSkillValidation,
 } from '../validators/user';
 
 const router = Router();
@@ -21,7 +22,7 @@ router.get('/:skillId/users', searchLimiter, UserController.getUsersWithSkill);
 router.use(authenticateToken);
 
 router.post('/skills', addUserSkillValidation, handleValidationErrors, UserController.addUserSkill);
-router.put('/skills/:skillId', addUserSkillValidation, handleValidationErrors, UserController.updateUserSkill);
+router.put('/skills/:skillId', updateUserSkillValidation, handleValidationErrors, UserController.updateUserSkill);
 router.delete('/skills/:skillId', UserController.removeUserSkill);
 router.post('/:userId/skills/:skillId/endorse', UserController.endorseUserSkill);
 

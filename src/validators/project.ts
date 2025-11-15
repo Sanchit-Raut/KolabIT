@@ -51,9 +51,7 @@ export const createProjectValidation = [
     .withMessage('At least one required skill must be specified'),
   
   body('requiredSkills.*')
-    .isString()
-    .trim()
-    .isLength({ min: 20, max: 30 })
+    .isUUID()
     .withMessage('Each required skill must be a valid ID'),
 ];
 
@@ -155,16 +153,12 @@ export const updateJoinRequestValidation = [
 
 export const projectIdValidation = [
   param('id')
-    .isString()
-    .trim()
-    .isLength({ min: 20, max: 30 })
+    .isUUID()
     .withMessage('Project ID must be a valid ID'),
 ];
 
 export const joinRequestIdValidation = [
   param('requestId')
-    .isString()
-    .trim()
-    .isLength({ min: 20, max: 30 })
+    .isUUID()
     .withMessage('Join request ID must be a valid ID'),
 ];

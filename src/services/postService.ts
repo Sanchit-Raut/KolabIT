@@ -113,6 +113,52 @@ export class PostService {
   }
 
   /**
+   * Get comments for a post
+   */
+  static async getPostComments(postId: string): Promise<CommentData[]> {
+    // Ensure post exists
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+
+    if (!post) {
+      throw new Error('Post not found');
+    }
+
+    const comments = await prisma.comment.findMany({
+      where: { postId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            rollNumber: true,
+            department: true,
+            year: true,
+            semester: true,
+            bio: true,
+            avatar: true,
+            isVerified: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return comments.map(comment => ({
+      id: comment.id,
+      content: comment.content,
+      postId: comment.postId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+      author: comment.author as any,
+    }));
+  }
+
+  /**
    * Get posts with filters
    */
   static async getPosts(params: PostSearchParams): Promise<PaginatedResponse<PostData>> {
@@ -525,32 +571,96 @@ export class PostService {
       throw new Error('Post not found');
     }
 
-    const comment = await prisma.comment.create({
-      data: {
-        ...commentData,
-        postId,
-        authorId,
-      },
+    // Get the post with author details
+    const postWithAuthor = await prisma.post.findUnique({
+      where: { id: postId },
       include: {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
-            rollNumber: true,
-            department: true,
-            year: true,
-            semester: true,
-            bio: true,
-            avatar: true,
-            isVerified: true,
-            createdAt: true,
-            updatedAt: true,
           },
         },
       },
     });
+
+    if (!postWithAuthor || !postWithAuthor.author) {
+      throw new Error('Post or post author not found');
+    }
+
+    // Get the comment author details
+    const commentAuthor = await prisma.user.findUnique({
+      where: { id: authorId },
+      select: {
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (!commentAuthor) {
+      throw new Error('Comment author not found');
+    }
+
+    const [comment] = await prisma.$transaction([
+      prisma.comment.create({
+        data: {
+          ...commentData,
+          postId,
+          authorId,
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              rollNumber: true,
+              department: true,
+              year: true,
+              semester: true,
+              bio: true,
+              avatar: true,
+              isVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      }),
+      // Create notification for post author if the comment is from someone else
+      ...(postWithAuthor.authorId !== authorId ? [
+        prisma.notification.create({
+          data: {
+            userId: postWithAuthor.authorId,
+            type: 'POST_COMMENT',
+            title: 'New Comment on Your Post',
+            message: `${commentAuthor.firstName} ${commentAuthor.lastName} commented on your post "${postWithAuthor.title}"`,
+            data: {
+              postId,
+              commentAuthorId: authorId,
+              postTitle: postWithAuthor.title
+            },
+          },
+        }),
+      ] : []),
+      
+      // Create notification for post author
+      prisma.notification.create({
+        data: {
+          userId: post.authorId,
+          type: 'POST_COMMENT',
+          title: 'New Comment on Your Post',
+          message: `Someone commented on your post: "${post.title}"`,
+          data: {
+            postId,
+            commentId: commentData.id,
+            authorId,
+          },
+        },
+      }),
+    ]);
 
     return {
       id: comment.id,
