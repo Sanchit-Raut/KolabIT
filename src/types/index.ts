@@ -96,7 +96,7 @@ export interface ProjectData {
   id: string;
   title: string;
   description: string;
-  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'RECRUITING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   type: 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP';
   maxMembers?: number;
   startDate?: Date;
@@ -127,7 +127,7 @@ export interface CreateProjectData {
 export interface UpdateProjectData {
   title?: string;
   description?: string;
-  status?: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status?: 'RECRUITING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   type?: 'ACADEMIC' | 'PERSONAL' | 'COMPETITION' | 'INTERNSHIP';
   maxMembers?: number;
   startDate?: Date;

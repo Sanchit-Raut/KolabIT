@@ -17,7 +17,7 @@
 |-------|---------|-------------|
 | **Users** | 5 | Registered users on the platform |
 | **Skills** | 43 | Available skills (JavaScript, Python, React, etc.) |
-| **Projects** | 2 | Active/planning projects |
+| **Projects** | 2 | Active/recruiting projects |
 | **Posts** | 1 | Community discussion posts |
 | **Badges** | 13 | Achievement badges users can earn |
 
@@ -76,7 +76,7 @@ Stores user information:
 ### 3. **Project Table** (`projects`)
 Collaboration projects:
 - ✅ Title, Description
-- ✅ Status (PLANNING, ACTIVE, COMPLETED, CANCELLED)
+- ✅ Status (RECRUITING, ACTIVE, COMPLETED, CANCELLED)
 - ✅ Type (ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP)
 - ✅ Max Members
 - ✅ Start/End Dates
@@ -84,7 +84,7 @@ Collaboration projects:
 - ✅ Owner
 
 **Current Projects:**
-1. "Build a Todo App" (PLANNING)
+1. "Build a Todo App" (RECRUITING)
 2. "Test E-commerce Website" (ACTIVE)
 
 ### 4. **Post Table** (`posts`)

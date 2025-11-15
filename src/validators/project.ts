@@ -70,8 +70,8 @@ export const updateProjectValidation = [
   
   body('status')
     .optional()
-    .isIn(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED'])
-    .withMessage('Status must be one of: PLANNING, ACTIVE, COMPLETED, CANCELLED'),
+    .isIn(['RECRUITING', 'ACTIVE', 'COMPLETED', 'CANCELLED'])
+    .withMessage('Status must be one of: RECRUITING, ACTIVE, COMPLETED, CANCELLED'),
   
   body('type')
     .optional()
@@ -122,8 +122,8 @@ export const searchProjectsValidation = [
   
   query('status')
     .optional()
-    .isIn(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED'])
-    .withMessage('Status must be one of: PLANNING, ACTIVE, COMPLETED, CANCELLED'),
+    .isIn(['RECRUITING', 'ACTIVE', 'COMPLETED', 'CANCELLED'])
+    .withMessage('Status must be one of: RECRUITING, ACTIVE, COMPLETED, CANCELLED'),
   
   query('type')
     .optional()

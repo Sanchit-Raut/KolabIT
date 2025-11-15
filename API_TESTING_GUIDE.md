@@ -302,7 +302,6 @@ curl -X POST http://localhost:5000/api/projects \
     "title": "Build a Todo App",
     "description": "A simple todo application using React and Node.js",
     "type": "ACADEMIC",
-    "status": "PLANNING",
     "maxMembers": 5,
     "requiredSkills": ["JavaScript", "React"]
   }'
@@ -321,7 +320,7 @@ curl -X POST http://localhost:5000/api/projects \
   "title": "Build a Todo App",
   "description": "A simple todo application using React and Node.js",
   "type": "ACADEMIC",
-  "status": "PLANNING",
+  "status": "RECRUITING",
   "maxMembers": 5,
   "ownerId": "your_user_id",
   "createdAt": "2025-11-02T12:00:00.000Z",
@@ -336,7 +335,7 @@ curl -X POST http://localhost:5000/api/projects \
 ```
 
 ### What this means:
-✅ Project created! You are the owner.
+✅ Project created! You are the owner and status is automatically set to RECRUITING.
 
 ---
 
@@ -359,7 +358,7 @@ curl http://localhost:5000/api/projects
       "title": "Build a Todo App",
       "description": "A simple todo application...",
       "type": "ACADEMIC",
-      "status": "PLANNING",
+      "status": "RECRUITING",
       "owner": {
         "firstName": "John",
         "lastName": "Doe"

@@ -74,7 +74,7 @@ Unique: (userId, skillId)
 - id: UUID
 - title: string
 - description: text
-- status: string (PLANNING|ACTIVE|COMPLETED|CANCELLED)
+- status: string (RECRUITING|ACTIVE|COMPLETED|CANCELLED)
 - type: string (ACADEMIC|PERSONAL|COMPETITION|INTERNSHIP)
 - maxMembers: integer?
 - startDate: timestamp?
@@ -431,7 +431,7 @@ Post
 - Assignees must be project members
 - Prevent owner from joining own project
 
-**Status Flow:** PLANNING → ACTIVE → COMPLETED | CANCELLED
+**Status Flow:** RECRUITING → ACTIVE → COMPLETED | CANCELLED
 **Join Flow:** PENDING → ACCEPTED | REJECTED
 **Roles:** MEMBER → COLLABORATOR → MAINTAINER
 

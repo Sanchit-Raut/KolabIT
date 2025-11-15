@@ -400,7 +400,7 @@ Get all projects with filters.
 - `limit` (number): Results per page
 - `search` (string): Search term
 - `skills` (string): Comma-separated skill IDs
-- `status` (string): Project status (active, completed, planning)
+- `status` (string): Project status (active, completed, recruiting)
 - `type` (string): Project type
 - `sortBy` (string): Sort field
 - `sortOrder` (string): "asc" or "desc"
@@ -470,7 +470,7 @@ Create a new project.
 {
   "title": "E-Commerce Platform",
   "description": "Full-stack e-commerce solution with React and Node.js",
-  "status": "planning",
+  "status": "recruiting",
   "type": "Web Development",
   "maxMembers": 5,
   "startDate": "2024-01-01T00:00:00Z",

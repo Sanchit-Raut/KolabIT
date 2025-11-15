@@ -31,7 +31,7 @@
 - **What it does:** Retrieves all projects available on the platform
 - **Endpoint:** `GET /api/projects`
 - **Result:** Found **2 projects**:
-  1. "Build a Todo App" (Status: PLANNING)
+  1. "Build a Todo App" (Status: RECRUITING)
   2. "Test E-commerce Website" (Status: ACTIVE)
 - **Why it matters:** Users can see available collaboration opportunities
 

@@ -158,7 +158,7 @@ model Project {
   id          String   @id @default(cuid())
   title       String
   description String
-  status      String   // PLANNING, ACTIVE, COMPLETED, CANCELLED
+  status      String   // RECRUITING, ACTIVE, COMPLETED, CANCELLED
   type        String   // ACADEMIC, PERSONAL, COMPETITION, INTERNSHIP
   maxMembers  Int?
   startDate   DateTime?
