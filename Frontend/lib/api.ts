@@ -304,14 +304,20 @@ export const userApi = {
       search?: string
       skills?: string[]
       department?: string
+      year?: number
       page?: number
       limit?: number
     } = {},
   ) => {
     const queryParams = new URLSearchParams()
     if (params.search) queryParams.append("search", params.search)
-    if (params.skills?.length) queryParams.append("skills", params.skills.join(","))
+    // Backend validator expects skills as array, so append each skill separately with the same key
+    // This makes Express parse it as an array: ?skills=Java&skills=Python
+    if (params.skills?.length) {
+      params.skills.forEach(skill => queryParams.append("skills", skill))
+    }
     if (params.department) queryParams.append("department", params.department)
+    if (params.year) queryParams.append("year", params.year.toString())
     if (params.page) queryParams.append("page", params.page.toString())
     if (params.limit) queryParams.append("limit", params.limit.toString())
 
@@ -481,8 +487,8 @@ export const postApi = {
   },
 
   getPostComments: async (postId: string) => {
-    const response = await apiCall(`/posts/${postId}/comments`)
-    return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.comments || []
+    const response = await apiCall<any>(`/posts/${postId}/comments`)
+    return response.data
   },
 
   createPost: async (postData: {
@@ -510,15 +516,17 @@ export const postApi = {
     })
     return response.data
   },
-  
-  getPostComments: async (postId: string) => {
-    const response = await apiCall(`/posts/${postId}/comments`)
-    return response.data
-  },
 
   likePost: async (postId: string) => {
     const response = await apiCall(`/posts/${postId}/like`, {
       method: "POST",
+    })
+    return response.data
+  },
+
+  deletePost: async (postId: string) => {
+    const response = await apiCall(`/posts/${postId}`, {
+      method: "DELETE",
     })
     return response.data
   },
@@ -530,7 +538,7 @@ export const postApi = {
 
 export const skillApi = {
   getAllSkills: async (page = 1, limit = 100) => {
-    const response = await apiCall(`/skills?page=${page}&limit=${limit}`)
+    const response = await apiCall<any>(`/skills?page=${page}&limit=${limit}`)
     // Handle both direct array and nested data structure
     return {
       data: Array.isArray(response.data) ? response.data : response.data?.data || response.data?.items || [],

@@ -22,10 +22,10 @@ export default function CommunityPage() {
 
   const categories = [
     { value: "all", label: "All Posts" },
-    { value: "announcements", label: "Announcements" },
-    { value: "study-groups", label: "Study Groups" },
-    { value: "events", label: "Events" },
-    { value: "general", label: "General Discussion" },
+    { value: "ANNOUNCEMENT", label: "Announcements" },
+    { value: "DISCUSSION", label: "Discussions" },
+    { value: "HELP", label: "Help" },
+    { value: "SHOWCASE", label: "Showcase" },
   ]
 
   useEffect(() => {
@@ -54,11 +54,13 @@ export default function CommunityPage() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "announcements":
+      case "ANNOUNCEMENT":
         return "bg-blue-100 text-blue-800"
-      case "study-groups":
+      case "DISCUSSION":
         return "bg-green-100 text-green-800"
-      case "events":
+      case "HELP":
+        return "bg-red-100 text-red-800"
+      case "SHOWCASE":
         return "bg-purple-100 text-purple-800"
       default:
         return "bg-gray-100 text-gray-800"

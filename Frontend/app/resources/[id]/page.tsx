@@ -180,6 +180,16 @@ export default function ResourceDetailPage() {
     return id ? `https://www.youtube.com/embed/${id}` : null
   }
 
+  const normalizeUrl = (url?: string) => {
+    if (!url) return ""
+    // If URL already has protocol, return as is
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url
+    }
+    // Otherwise, add https://
+    return `https://${url}`
+  }
+
   const calculateAverageRating = () => {
     if (!resource?.ratings || resource.ratings.length === 0) return 0
     const sum = resource.ratings.reduce((acc, r) => acc + r.rating, 0)
@@ -315,7 +325,7 @@ export default function ResourceDetailPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <Video className="h-4 w-4 text-red-600 flex-shrink-0" />
                       <a
-                        href={resource.youtubeUrl}
+                        href={normalizeUrl(resource.youtubeUrl)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-blue-600 hover:underline break-all"
@@ -328,7 +338,7 @@ export default function ResourceDetailPage() {
                     <div key={index} className="flex items-center gap-2 text-sm">
                       <LinkIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
                       <a
-                        href={link.url}
+                        href={normalizeUrl(link.url)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-blue-600 hover:underline break-all"
@@ -412,7 +422,7 @@ export default function ResourceDetailPage() {
                 {(resource.articleLinks as any[]).map((link: any, index: number) => (
                   <a
                     key={index}
-                    href={link.url}
+                    href={normalizeUrl(link.url)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted transition-colors group"

@@ -640,7 +640,8 @@ export class PostService {
             data: {
               postId,
               commentAuthorId: authorId,
-              postTitle: postWithAuthor.title
+              postTitle: postWithAuthor.title,
+              link: `/community/${postId}`
             },
           },
         }),
@@ -657,6 +658,7 @@ export class PostService {
             postId,
             commentId: commentData.id,
             authorId,
+            link: `/community/${postId}`
           },
         },
       }),

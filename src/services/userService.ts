@@ -50,7 +50,10 @@ export class UserService {
           skillId: { in: skills },
         },
       };
+      console.log('[UserService] Filtering by skill IDs:', skills);
     }
+
+    console.log('[UserService] Final where clause:', JSON.stringify(where, null, 2));
 
     // Build orderBy clause
     const orderBy: any = {};
