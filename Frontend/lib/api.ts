@@ -305,18 +305,19 @@ export const userApi = {
       skills?: string[]
       department?: string
       year?: number
-      semester?: number
       page?: number
       limit?: number
     } = {},
   ) => {
     const queryParams = new URLSearchParams()
     if (params.search) queryParams.append("search", params.search)
-    // Backend expects comma-separated string for skills
-    if (params.skills?.length) queryParams.append("skills", params.skills.join(","))
+    // Backend validator expects skills as array, so append each skill separately with the same key
+    // This makes Express parse it as an array: ?skills=Java&skills=Python
+    if (params.skills?.length) {
+      params.skills.forEach(skill => queryParams.append("skills", skill))
+    }
     if (params.department) queryParams.append("department", params.department)
     if (params.year) queryParams.append("year", params.year.toString())
-    if (params.semester) queryParams.append("semester", params.semester.toString())
     if (params.page) queryParams.append("page", params.page.toString())
     if (params.limit) queryParams.append("limit", params.limit.toString())
 

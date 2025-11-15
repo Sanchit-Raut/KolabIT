@@ -55,6 +55,13 @@ export const searchUsersValidation = [
   
   query('skills')
     .optional()
+    .customSanitizer((value) => {
+      // Normalize skills to always be an array
+      if (!value) return [];
+      if (Array.isArray(value)) return value;
+      // Single string value - convert to array
+      return [value];
+    })
     .isArray()
     .withMessage('Skills must be an array'),
   
@@ -66,6 +73,7 @@ export const searchUsersValidation = [
   
   query('year')
     .optional()
+    .toInt()
     .isInt({ min: 1, max: 5 })
     .withMessage('Year must be between 1 and 5'),
   

@@ -9,16 +9,21 @@ export class UserController {
    * Search users
    */
   static searchUsers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    console.log('[UserController] Search query params:', req.query);
+    
     const searchParams: UserSearchParams = {
       page: parseInt(req.query.page as string) || 1,
       limit: parseInt(req.query.limit as string) || 20,
-      skills: req.query.skills ? (req.query.skills as string).split(',') : [],
+      // Validator normalizes skills to always be an array
+      skills: (req.query.skills as string[]) || [],
       department: req.query.department as string,
       year: req.query.year ? parseInt(req.query.year as string) : undefined,
       search: req.query.search as string,
       sortBy: req.query.sortBy as string || 'createdAt',
       sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc',
     };
+
+    console.log('[UserController] Parsed search params:', searchParams);
 
     const result = await UserService.searchUsers(searchParams);
     

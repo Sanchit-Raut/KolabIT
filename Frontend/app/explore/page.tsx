@@ -17,11 +17,10 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [year, setYear] = useState<string>("all")
-  const [semester, setSemester] = useState<string>("all")
   const [department, setDepartment] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
   const [students, setStudents] = useState<User[]>([])
-  const [availableSkills, setAvailableSkills] = useState<string[]>([])
+  const [availableSkills, setAvailableSkills] = useState<Array<{ id: string; name: string }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -31,7 +30,8 @@ export default function ExplorePage() {
       try {
         const response = await skillApi.getAllSkills(1, 100)
         const skills = response.data || []
-        setAvailableSkills(skills.map((skill: any) => skill.name))
+        // Store both id and name
+        setAvailableSkills(skills.map((skill: any) => ({ id: skill.id, name: skill.name })))
       } catch (err) {
         console.error("[v0] Error fetching skills:", err)
       }
@@ -43,13 +43,14 @@ export default function ExplorePage() {
     const fetchStudents = async () => {
       try {
         setLoading(true)
-        const data = await userApi.searchUsers({
+        const searchParams = {
           search: searchQuery || undefined,
           skills: selectedSkills.length > 0 ? selectedSkills : undefined,
           department: department !== "all" ? department : undefined,
           year: year !== "all" ? Number(year) : undefined,
-          semester: semester !== "all" ? Number(semester) : undefined,
-        })
+        }
+        console.log('[Explore] Search params:', searchParams)
+        const data = await userApi.searchUsers(searchParams)
         // Handle both direct array and paginated response
         if (Array.isArray(data)) {
           setStudents(data)
@@ -75,12 +76,12 @@ export default function ExplorePage() {
     }, 500)
 
     return () => clearTimeout(debounceTimer)
-  }, [searchQuery, selectedSkills, department, year, semester])
+  }, [searchQuery, selectedSkills, department, year])
 
   const filteredStudents = students
 
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]))
+  const toggleSkill = (skillId: string) => {
+    setSelectedSkills((prev) => (prev.includes(skillId) ? prev.filter((s) => s !== skillId) : [...prev, skillId]))
   }
 
   return (
@@ -114,9 +115,9 @@ export default function ExplorePage() {
             <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4" />
               Filters
-              {(selectedSkills.length > 0 || year !== "all" || semester !== "all" || department !== "all") && (
+              {(selectedSkills.length > 0 || year !== "all" || department !== "all") && (
                 <Badge variant="secondary" className="ml-2">
-                  {selectedSkills.length + (year !== "all" ? 1 : 0) + (semester !== "all" ? 1 : 0) + (department !== "all" ? 1 : 0)}
+                  {selectedSkills.length + (year !== "all" ? 1 : 0) + (department !== "all" ? 1 : 0)}
                 </Badge>
               )}
             </Button>
@@ -141,12 +142,12 @@ export default function ExplorePage() {
                     <div className="flex flex-wrap gap-2">
                       {availableSkills.slice(0, 20).map((skill) => (
                         <Badge
-                          key={skill}
-                          variant={selectedSkills.includes(skill) ? "default" : "outline"}
+                          key={skill.id}
+                          variant={selectedSkills.includes(skill.id) ? "default" : "outline"}
                           className="cursor-pointer hover:bg-orange-500 hover:text-white transition-colors"
-                          onClick={() => toggleSkill(skill)}
+                          onClick={() => toggleSkill(skill.id)}
                         >
-                          {skill}
+                          {skill.name}
                         </Badge>
                       ))}
                     </div>
@@ -154,7 +155,7 @@ export default function ExplorePage() {
                 )}
 
                 {/* Other Filters */}
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Department</label>
                     <Select value={department} onValueChange={setDepartment}>
@@ -187,26 +188,6 @@ export default function ExplorePage() {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Semester</label>
-                    <Select value={semester} onValueChange={setSemester}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Semesters</SelectItem>
-                        <SelectItem value="1">Semester 1</SelectItem>
-                        <SelectItem value="2">Semester 2</SelectItem>
-                        <SelectItem value="3">Semester 3</SelectItem>
-                        <SelectItem value="4">Semester 4</SelectItem>
-                        <SelectItem value="5">Semester 5</SelectItem>
-                        <SelectItem value="6">Semester 6</SelectItem>
-                        <SelectItem value="7">Semester 7</SelectItem>
-                        <SelectItem value="8">Semester 8</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 {/* Clear Filters */}
@@ -215,7 +196,6 @@ export default function ExplorePage() {
                   onClick={() => {
                     setSelectedSkills([])
                     setYear("all")
-                    setSemester("all")
                     setDepartment("all")
                   }}
                 >
@@ -329,7 +309,6 @@ export default function ExplorePage() {
                       setSearchQuery("")
                       setSelectedSkills([])
                       setYear("all")
-                      setSemester("all")
                       setDepartment("all")
                     }}
                   >
