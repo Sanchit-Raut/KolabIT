@@ -21,19 +21,26 @@ export function Header() {
       if (!isAuthenticated || !user?.id) return
       
       try {
-        const data: any = await notificationApi.getNotifications(1, 50)
-        const notifications = Array.isArray(data) ? data : data?.notifications || []
+        // notificationApi.getNotifications returns { data: [...], pagination: {...} }
+        const response: any = await notificationApi.getNotifications(1, 50)
+        
+        // Extract the notifications array from response.data
+        const notifications = Array.isArray(response?.data) 
+          ? response.data 
+          : []
+        
         const count = notifications.filter((n: any) => !n.isRead).length
         setUnreadCount(count)
       } catch (error) {
         console.error("Failed to fetch notifications:", error)
+        setUnreadCount(0)
       }
     }
 
     if (isAuthenticated) {
       fetchUnreadCount()
-      // Refresh every 60 seconds instead of 30
-      const interval = setInterval(fetchUnreadCount, 60000)
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000)
       return () => clearInterval(interval)
     }
   }, [isAuthenticated, user?.id])
@@ -48,7 +55,10 @@ export function Header() {
     { href: "/projects", label: "Projects" },
     { href: "/resources", label: "Resources" },
     { href: "/community", label: "Community" },
-    ...(isAuthenticated ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    ...(isAuthenticated ? [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/messages", label: "Messages" }
+    ] : []),
   ]
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")

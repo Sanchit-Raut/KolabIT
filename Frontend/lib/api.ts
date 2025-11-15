@@ -49,13 +49,6 @@ export const tokenManager = {
 export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const token = tokenManager.getToken()
 
-  console.log(`[API Call] ${options.method || 'GET'} ${endpoint}`)
-  console.log(`[API Call] Token present:`, !!token)
-  console.log(`[API Call] Full URL:`, `${API_BASE_URL}${endpoint}`)
-  if (options.body) {
-    console.log(`[API Call] Body:`, options.body)
-  }
-
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -66,35 +59,28 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   }
 
   try {
-    console.log(`[API Call] Sending request...`)
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
       credentials: "include",
     })
 
-    console.log(`[API Call] Response status:`, response.status)
-    console.log(`[API Call] Response ok:`, response.ok)
-
     const contentType = response.headers.get("content-type")
     if (!contentType?.includes("application/json")) {
-      console.error(`[API Call] Invalid content type:`, contentType)
+      console.error(`[API Error] Invalid content type:`, contentType)
       throw new Error("Server error: Invalid response format")
     }
 
     const data = await response.json()
-    console.log(`[API Call] Response data:`, data)
 
     if (!response.ok) {
       if (response.status === 401) {
-        console.warn(`[API Call] Unauthorized - removing token`)
+        console.warn(`[API] Unauthorized - removing token`)
         tokenManager.removeToken()
       }
-      console.error(`[API Call] Request failed:`, data.error)
       throw new Error(data.error?.message || `API error: ${response.status}`)
     }
 
-    console.log(`[API Call] ✅ Success`)
     return data
   } catch (error) {
     console.error("[API Error]", error)
@@ -647,13 +633,7 @@ export const messageApi = {
   },
 
   getMessagesWith: async (recipientId: string) => {
-    console.log(`[messageApi] Fetching messages with ${recipientId}`)
     const response = await apiCall(`/messages/${recipientId}`)
-    console.log(`[messageApi] Raw response:`, response)
-    console.log(`[messageApi] Response.data type:`, typeof response.data)
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      console.log(`[messageApi] First message structure:`, response.data[0])
-    }
     return response.data
   },
 

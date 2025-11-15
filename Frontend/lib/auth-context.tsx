@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import type { User } from "./types"
 import { authApi, tokenManager } from "./api"
 import { useRouter } from "next/navigation"
@@ -24,31 +24,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const initializationAttempted = useRef(false)
+
+  const checkAuth = useCallback(async () => {
+    try {
+      setLoading(true)
+      if (tokenManager.isAuthenticated()) {
+        const profile = await authApi.getProfile()
+        console.log("[Auth] Profile loaded:", profile.firstName, profile.lastName, profile.id)
+        setUser(profile)
+        setError(null)
+      } else {
+        console.log("[Auth] No token found, user not authenticated")
+        setUser(null)
+      }
+    } catch (err) {
+      console.error("[Auth] Auth check failed:", err)
+      tokenManager.removeToken()
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    if (initializationAttempted.current) return
-    initializationAttempted.current = true
-
-    const checkAuth = async () => {
-      try {
-        if (tokenManager.isAuthenticated()) {
-          const profile = await authApi.getProfile()
-          setUser(profile)
-          setError(null)
-        } else {
-          setUser(null)
-        }
-      } catch (err) {
-        console.error("[v0] Auth check failed:", err)
-        tokenManager.removeToken()
-        setUser(null)
-      } finally {
-        setLoading(false)
+    checkAuth()
+    
+    // Listen for storage changes (when user logs in/out in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth_token') {
+        console.log("[Auth] Token changed in another tab, reloading auth")
+        checkAuth()
       }
     }
-
-    checkAuth()
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {

@@ -36,7 +36,7 @@ interface Message {
 export default function MessagesPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const userId = params.userId as string
 
@@ -57,10 +57,12 @@ export default function MessagesPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !authLoading) {
       router.push("/login")
       return
     }
+    
+    if (!user) return // Still loading
     
     // Verify we have the correct logged-in user
     console.log("=== Current Session ===")
@@ -71,7 +73,14 @@ export default function MessagesPage() {
     
     fetchMessages()
     fetchUserProfile()
-  }, [userId, user])
+    
+    // Auto-refresh messages every 5 seconds
+    const interval = setInterval(() => {
+      fetchMessages(true) // Silent refresh
+    }, 5000)
+    
+    return () => clearInterval(interval)
+  }, [userId, user, authLoading])
 
   useEffect(() => {
     scrollToBottom()
@@ -82,19 +91,7 @@ export default function MessagesPage() {
       if (!silent) setLoading(true)
       else setRefreshing(true)
       
-      console.log(`[Messages] Fetching messages with user: ${userId}`)
       const data = await messageApi.getMessagesWith(userId)
-      console.log(`[Messages] Received ${Array.isArray(data) ? data.length : 0} messages`)
-      console.log(`[Messages] Current user ID: ${user?.id}`)
-      
-      if (Array.isArray(data) && data.length > 0) {
-        console.log(`[Messages] Last 3 messages:`)
-        data.slice(-3).forEach((msg: any, idx: number) => {
-          console.log(`  ${idx + 1}. SenderId: ${msg.senderId}, MyId: ${user?.id}, Match: ${msg.senderId === user?.id}`)
-          console.log(`     From ${msg.senderId === user?.id ? 'ME' : 'THEM'}: "${msg.content}"`)
-        })
-      }
-      
       setMessages(Array.isArray(data) ? data : [])
     } catch (error: any) {
       console.error("Failed to load messages:", error)
@@ -128,49 +125,26 @@ export default function MessagesPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log("=== SEND MESSAGE DEBUG ===")
-    console.log("1. Form submitted")
-    console.log("2. New message:", newMessage)
-    console.log("3. Sending state:", sending)
-    console.log("4. User ID:", userId)
-    console.log("5. Current user:", user)
-    
     if (!newMessage.trim() || sending) {
-      console.log("❌ Validation failed - message empty or already sending")
       return
     }
 
     const messageContent = newMessage.trim()
-    console.log("6. Trimmed content:", messageContent)
 
     try {
       setSending(true)
-      console.log("7. Set sending to true")
-      
-      console.log("8. Calling messageApi.sendMessage...")
-      console.log("   - recipientId:", userId)
-      console.log("   - content:", messageContent)
       
       const messageData: any = await messageApi.sendMessage(userId, messageContent)
-      
-      console.log("9. ✅ Message sent successfully!")
-      console.log("   - Response data:", messageData)
       
       if (messageData) {
         // Clear input after successful send
         setNewMessage("")
         
         // Refresh messages to get the updated conversation
-        // This ensures both sender and recipient messages are displayed correctly
         await fetchMessages(true)
         
         // Scroll to bottom to show the new message
         setTimeout(scrollToBottom, 100)
-        
-        toast({
-          title: "Success",
-          description: "Message sent successfully",
-        })
       }
       
       // Focus back on input
@@ -178,10 +152,7 @@ export default function MessagesPage() {
         inputRef.current.focus()
       }
     } catch (error: any) {
-      console.error("❌ Failed to send message")
-      console.error("   - Error object:", error)
-      console.error("   - Error message:", error.message)
-      console.error("   - Error stack:", error.stack)
+      console.error("Failed to send message:", error)
       
       // Restore message on error
       setNewMessage(messageContent)
@@ -192,8 +163,6 @@ export default function MessagesPage() {
       })
     } finally {
       setSending(false)
-      console.log("10. Set sending to false")
-      console.log("=== END SEND MESSAGE DEBUG ===")
     }
   }
 
@@ -250,8 +219,8 @@ export default function MessagesPage() {
           )}
         </div>
 
-        <Card className="h-[600px] flex flex-col overflow-hidden">
-          <ScrollArea className="flex-1 p-4">
+        <Card className="h-[600px] flex flex-col">
+          <ScrollArea className="flex-1 p-4 overflow-y-auto">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground">
@@ -265,12 +234,6 @@ export default function MessagesPage() {
                   const myUserId = user?.id
                   const messageSenderId = message.senderId
                   const isCurrentUser = myUserId && messageSenderId && (messageSenderId === myUserId)
-                  
-                  console.log(`[Render] Message ${message.id.slice(0, 8)}...`)
-                  console.log(`  My ID: ${myUserId}`)
-                  console.log(`  Sender ID: ${messageSenderId}`)
-                  console.log(`  Is me? ${isCurrentUser}`)
-                  console.log(`  Content: ${message.content.slice(0, 30)}`)
                   
                   return (
                     <div
