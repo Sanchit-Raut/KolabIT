@@ -103,6 +103,45 @@ CREATE TABLE IF NOT EXISTS resources (
   CONSTRAINT fk_resources_uploader FOREIGN KEY (uploader_id) REFERENCES users(id)
 );
 
+ALTER TABLE resources
+    ADD COLUMN views INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN likes INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN youtube_url TEXT,
+    ADD COLUMN article_links JSONB,
+    ADD COLUMN updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+
+CREATE TABLE public.resource_likes (
+  id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  resource_id text NOT NULL,
+  user_id text NOT NULL,
+  created_at timestamp(3) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX resource_likes_resource_id_idx ON public.resource_likes(resource_id);
+CREATE INDEX resource_likes_user_id_idx     ON public.resource_likes(user_id);
+
+-- Unique constraint (resource_id, user_id)
+ALTER TABLE public.resource_likes
+  ADD CONSTRAINT resource_likes_resource_id_user_id_key UNIQUE (resource_id, user_id);
+
+-- Foreign keys with cascading actions
+ALTER TABLE public.resource_likes
+  ADD CONSTRAINT resource_likes_resource_id_fkey
+    FOREIGN KEY (resource_id)
+    REFERENCES public.resources(id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+
+ALTER TABLE public.resource_likes
+  ADD CONSTRAINT resource_likes_user_id_fkey
+    FOREIGN KEY (user_id)
+    REFERENCES public.users(id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+
+
 -- Table: resource_ratings
 CREATE TABLE IF NOT EXISTS resource_ratings (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,

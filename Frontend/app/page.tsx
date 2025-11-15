@@ -36,6 +36,16 @@ export default function HomePage() {
             <Link href="/community" className="text-gray-600 hover:text-gray-900 transition-colors">
               Community
             </Link>
+            {isAuthenticated && (
+              <>
+                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Dashboard
+                </Link>
+                <Link href="/messages" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Messages
+                </Link>
+              </>
+            )}
           </nav>
 
           <div className="flex items-center space-x-3">
