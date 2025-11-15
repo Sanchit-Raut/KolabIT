@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import path from 'path';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import config from './config/environment';
@@ -70,6 +71,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 app.use(apiLimiter);
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

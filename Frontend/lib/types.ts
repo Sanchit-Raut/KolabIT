@@ -293,7 +293,12 @@ export interface Resource {
   uploaderId: string
   uploader?: User
   ratings?: ResourceRating[]
+  youtubeUrl?: string
+  articleLinks?: Array<{ title: string; url: string }>
+  views?: number
+  likes?: number
   createdAt: string
+  updatedAt?: string
 }
 
 export interface ResourceRating {
