@@ -68,13 +68,14 @@ export class ResourceController {
    */
   static getResourceById = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
+    const userId = (req as any).user?.id; // Optional user from optionalAuth
     
     if (!id) {
       ResponseUtils.error(res, 'Resource ID is required', 'VALIDATION_ERROR', 400);
       return;
     }
     
-    const resource = await ResourceService.getResourceById(id);
+    const resource = await ResourceService.getResourceById(id, userId);
     
     ResponseUtils.success(res, resource);
   });
@@ -206,5 +207,22 @@ export class ResourceController {
     const resources = await ResourceService.getPopularResources(limit);
     
     ResponseUtils.success(res, resources);
+  });
+
+  /**
+   * Toggle like on resource
+   */
+  static toggleLike = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const userId = (req as any).user.id;
+    
+    if (!id) {
+      ResponseUtils.error(res, 'Resource ID is required', 'VALIDATION_ERROR', 400);
+      return;
+    }
+    
+    const result = await ResourceService.toggleLike(id, userId);
+    
+    ResponseUtils.success(res, result, result.liked ? 'Resource liked' : 'Resource unliked');
   });
 }

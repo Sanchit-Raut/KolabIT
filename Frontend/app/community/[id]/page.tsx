@@ -2,14 +2,14 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Heart, MessageCircle, Flag, Loader2 } from "lucide-react"
+import { ArrowLeft, Heart, MessageCircle, Flag, Loader2, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { postApi } from "@/lib/api"
@@ -18,6 +18,7 @@ import type { Post, Comment } from "@/lib/types"
 
 export default function PostDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const postId = params.id as string
   const { user: currentUser } = useAuth()
   const { toast } = useToast()
@@ -127,6 +128,28 @@ export default function PostDetailPage() {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleDeletePost = async () => {
+    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      await postApi.deletePost(postId)
+      toast({
+        title: "Success",
+        description: "Post deleted successfully",
+      })
+      router.push("/community")
+    } catch (err) {
+      console.error("[v0] Error deleting post:", err)
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      })
     }
   }
 
@@ -240,6 +263,18 @@ export default function PostDetailPage() {
                     <Button variant="outline" size="icon">
                       <Flag className="h-4 w-4" />
                     </Button>
+                    
+                    {/* Delete Button - Only show if user is the author */}
+                    {currentUser && currentUser.id === post.author?.id && (
+                      <Button
+                        variant="destructive"
+                        onClick={handleDeletePost}
+                        className="ml-auto"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Post
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

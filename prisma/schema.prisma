@@ -35,6 +35,7 @@ model User {
   projectMembers    ProjectMember[]
   ownedProjects     Project[]        @relation("ProjectOwner")
   resourceRatings   ResourceRating[]
+  resourceLikes     ResourceLike[]
   resources         Resource[]
   assignedTasks     Task[]           @relation("TaskAssignee")
   userBadges        UserBadge[]
@@ -146,9 +147,25 @@ model Resource {
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   ratings      ResourceRating[]
+  resourceLikes ResourceLike[]
   uploader     User      @relation(fields: [uploaderId], references: [id])
   @@map("resources")
   @@index([uploaderId])
+}
+
+model ResourceLike {
+  id         String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  resourceId String   @map("resource_id")
+  userId     String   @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, userId])
+  @@index([resourceId])
+  @@index([userId])
+  @@map("resource_likes")
 }
 
 model ResourceRating {

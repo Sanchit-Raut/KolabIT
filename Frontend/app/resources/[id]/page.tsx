@@ -12,14 +12,14 @@ import {
   Download, 
   Heart, 
   Star, 
-  Eye, 
   Loader2,
   ExternalLink,
   User,
   Calendar,
   FileText,
   Video,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Trash2
 } from "lucide-react"
 import Link from "next/link"
 import { resourceApi } from "@/lib/api"
@@ -56,10 +56,7 @@ export default function ResourceDetailPage() {
       const data = await resourceApi.getResourceById(resourceId)
       setResource(data)
       setLikeCount(data.likes || 0)
-      
-      // Check if user has liked this resource (from localStorage for now)
-      const likedResources = JSON.parse(localStorage.getItem("likedResources") || "[]")
-      setIsLiked(likedResources.includes(resourceId))
+      setIsLiked((data as any).isLiked || false) // Backend returns isLiked
       
       setError("")
     } catch (err) {
@@ -81,33 +78,16 @@ export default function ResourceDetailPage() {
     }
 
     try {
-      // Toggle like state
-      const newIsLiked = !isLiked
-      setIsLiked(newIsLiked)
-      setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1)
-
-      // Persist to localStorage
-      const likedResources = JSON.parse(localStorage.getItem("likedResources") || "[]")
-      if (newIsLiked) {
-        likedResources.push(resourceId)
-      } else {
-        const index = likedResources.indexOf(resourceId)
-        if (index > -1) likedResources.splice(index, 1)
-      }
-      localStorage.setItem("likedResources", JSON.stringify(likedResources))
-
-      // TODO: Call backend API to persist like
-      // await resourceApi.likeResource(resourceId)
+      const result = await resourceApi.toggleLike(resourceId)
+      setIsLiked(result.liked)
+      setLikeCount(result.likes)
 
       toast({
-        title: newIsLiked ? "Liked!" : "Unliked",
-        description: newIsLiked ? "Resource added to your favorites" : "Resource removed from favorites",
+        title: result.liked ? "Liked!" : "Unliked",
+        description: result.liked ? "Resource added to your favorites" : "Resource removed from favorites",
       })
     } catch (err) {
-      console.error("[v0] Error liking resource:", err)
-      // Revert on error
-      setIsLiked(!isLiked)
-      setLikeCount(prev => isLiked ? prev + 1 : prev - 1)
+      console.error("[v0] Error toggling like:", err)
       toast({
         title: "Error",
         description: "Failed to update like status",
@@ -161,10 +141,34 @@ export default function ResourceDetailPage() {
     if (resource?.fileUrl) {
       try {
         await resourceApi.trackDownload(resourceId)
-        window.open(resource.fileUrl, "_blank")
+        // Open backend URL for download
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+        window.open(`${API_BASE_URL}${resource.fileUrl}`, "_blank")
       } catch (err) {
         console.error("[v0] Error tracking download:", err)
       }
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this resource? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      await resourceApi.deleteResource(resourceId)
+      toast({
+        title: "Success",
+        description: "Resource deleted successfully",
+      })
+      router.push("/resources")
+    } catch (err) {
+      console.error("[v0] Error deleting resource:", err)
+      toast({
+        title: "Error",
+        description: "Failed to delete resource",
+        variant: "destructive",
+      })
     }
   }
 
@@ -293,10 +297,6 @@ export default function ResourceDetailPage() {
             {/* Stats */}
             <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
               <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                <span>{resource.views || 0} views</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 <span>{resource.downloads || 0} downloads</span>
               </div>
@@ -305,6 +305,41 @@ export default function ResourceDetailPage() {
                 <span>{likeCount} likes</span>
               </div>
             </div>
+
+            {/* Resource Links Section - YouTube and Article URLs */}
+            {(resource.youtubeUrl || (resource.articleLinks && resource.articleLinks.length > 0)) && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                <h3 className="font-semibold text-sm mb-3 text-blue-900">📎 Resource Links</h3>
+                <div className="space-y-2">
+                  {resource.youtubeUrl && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Video className="h-4 w-4 text-red-600 flex-shrink-0" />
+                      <a
+                        href={resource.youtubeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline break-all"
+                      >
+                        {resource.youtubeUrl}
+                      </a>
+                    </div>
+                  )}
+                  {resource.articleLinks && resource.articleLinks.map((link: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <LinkIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline break-all"
+                      >
+                        {link.title || link.url}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3">
@@ -322,6 +357,18 @@ export default function ResourceDetailPage() {
                 <Heart className={`h-4 w-4 mr-2 ${isLiked ? "fill-white" : ""}`} />
                 {isLiked ? "Liked" : "Like"}
               </Button>
+              
+              {/* Delete Button - Only show if user is the owner */}
+              {user && user.id === resource.uploaderId && (
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  className="ml-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

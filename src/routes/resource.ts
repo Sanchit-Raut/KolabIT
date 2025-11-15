@@ -18,7 +18,7 @@ const router = Router();
 // Public routes
 router.get('/', searchLimiter, searchResourcesValidation, handleValidationErrors, ResourceController.getResources);
 router.get('/popular', ResourceController.getPopularResources);
-router.get('/:id', resourceIdValidation, handleValidationErrors, ResourceController.getResourceById);
+router.get('/:id', optionalAuth, resourceIdValidation, handleValidationErrors, ResourceController.getResourceById);
 router.get('/:id/ratings', resourceIdValidation, handleValidationErrors, ResourceController.getResourceRatings);
 router.get('/:id/stats', resourceIdValidation, handleValidationErrors, ResourceController.getResourceStats);
 router.post('/:id/download', resourceIdValidation, ResourceController.trackDownload);
@@ -34,5 +34,8 @@ router.delete('/:id', resourceIdValidation, ResourceController.deleteResource);
 
 // Resource rating
 router.post('/:id/rating', resourceIdValidation, resourceRatingValidation, handleValidationErrors, ResourceController.rateResource);
+
+// Resource like/unlike
+router.post('/:id/like', resourceIdValidation, handleValidationErrors, ResourceController.toggleLike);
 
 export default router;

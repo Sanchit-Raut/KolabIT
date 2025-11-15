@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, Download, Heart, Star, Eye, Upload, Loader2, FileText, Video, Link as LinkIcon } from "lucide-react"
+import { Search, Download, Heart, Star, Upload, Loader2, FileText, Video, Link as LinkIcon } from "lucide-react"
 import Link from "next/link"
 import { resourceApi } from "@/lib/api"
 import type { Resource } from "@/lib/types"
@@ -211,10 +211,6 @@ export default function ResourcesPage() {
                   {/* Stats */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        <span>{resource.views || 0}</span>
-                      </div>
                       <div className="flex items-center gap-1">
                         <Download className="h-4 w-4" />
                         <span>{resource.downloads || 0}</span>

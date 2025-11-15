@@ -257,6 +257,13 @@ export const resourceApi = {
     return response.data;
   },
 
+  toggleLike: async (resourceId: string): Promise<{ liked: boolean; likes: number }> => {
+    const response = await apiCall<{ liked: boolean; likes: number }>(`/resources/${resourceId}/like`, {
+      method: 'POST',
+    });
+    return response.data!;
+  },
+
   trackDownload: async (resourceId: string) => {
     const response = await apiCall(`/resources/${resourceId}/download`, {
       method: 'POST',

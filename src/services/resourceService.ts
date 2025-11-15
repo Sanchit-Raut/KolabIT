@@ -341,23 +341,28 @@ export class ResourceService {
       data: resources.map(resource => ({
         id: resource.id,
         title: resource.title,
-  description: resource.description ?? undefined,
+        description: resource.description ?? undefined,
         type: resource.type as 'PDF' | 'DOC' | 'VIDEO' | 'LINK' | 'CODE',
         subject: resource.subject,
-  semester: resource.semester ?? undefined,
-  fileUrl: resource.fileUrl ?? undefined,
-  fileName: resource.fileName ?? undefined,
-  fileSize: resource.fileSize ?? undefined,
+        semester: resource.semester ?? undefined,
+        fileUrl: resource.fileUrl ?? undefined,
+        fileName: resource.fileName ?? undefined,
+        fileSize: resource.fileSize ?? undefined,
+        youtubeUrl: resource.youtubeUrl ?? undefined,
+        articleLinks: resource.articleLinks as any ?? undefined,
         downloads: resource.downloads,
+        views: resource.views,
+        likes: resource.likes,
         uploaderId: resource.uploaderId,
         createdAt: resource.createdAt,
+        updatedAt: resource.updatedAt,
         uploader: resource.uploader as any,
         ratings: resource.ratings.map(rating => ({
           id: rating.id,
           resourceId: rating.resourceId,
           userId: rating.userId,
           rating: rating.rating,
-              review: rating.review ?? undefined,
+          review: rating.review ?? undefined,
           user: rating.user as any,
         })),
       })),
@@ -373,7 +378,7 @@ export class ResourceService {
   /**
    * Get resource by ID
    */
-  static async getResourceById(resourceId: string): Promise<ResourceData> {
+  static async getResourceById(resourceId: string, userId?: string): Promise<ResourceData & { isLiked?: boolean }> {
     const resource = await prisma.resource.findUnique({
       where: { id: resourceId },
       include: {
@@ -423,6 +428,20 @@ export class ResourceService {
       throw new Error('Resource not found');
     }
 
+    // Check if user has liked this resource
+    let isLiked = false;
+    if (userId) {
+      const like = await prisma.resourceLike.findUnique({
+        where: {
+          resourceId_userId: {
+            resourceId,
+            userId,
+          },
+        },
+      });
+      isLiked = !!like;
+    }
+
     return {
       id: resource.id,
       title: resource.title,
@@ -433,9 +452,14 @@ export class ResourceService {
       fileUrl: resource.fileUrl ?? undefined,
       fileName: resource.fileName ?? undefined,
       fileSize: resource.fileSize ?? undefined,
+      youtubeUrl: resource.youtubeUrl ?? undefined,
+      articleLinks: resource.articleLinks as any ?? undefined,
       downloads: resource.downloads,
+      views: resource.views,
+      likes: resource.likes,
       uploaderId: resource.uploaderId,
       createdAt: resource.createdAt,
+      updatedAt: resource.updatedAt,
       uploader: (resource as any).uploader as any,
       ratings: (resource as any).ratings.map((rating: any) => ({
         id: rating.id,
@@ -445,6 +469,7 @@ export class ResourceService {
         review: rating.review ?? undefined,
         user: (rating as any).user as any,
       })),
+      isLiked,
     };
   }
 
@@ -832,4 +857,83 @@ export class ResourceService {
       })),
     }));
   }
+
+  /**
+   * Toggle like on a resource
+   */
+  static async toggleLike(resourceId: string, userId: string): Promise<{ liked: boolean; likes: number }> {
+    // Check if resource exists
+    const resource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+    });
+
+    if (!resource) {
+      throw new Error('Resource not found');
+    }
+
+    // Check if user already liked this resource
+    const existingLike = await prisma.resourceLike.findUnique({
+      where: {
+        resourceId_userId: {
+          resourceId,
+          userId,
+        },
+      },
+    });
+
+    let liked: boolean;
+    
+    if (existingLike) {
+      // Unlike - remove the like
+      await prisma.resourceLike.delete({
+        where: {
+          id: existingLike.id,
+        },
+      });
+      
+      // Decrement likes count
+      await prisma.resource.update({
+        where: { id: resourceId },
+        data: {
+          likes: {
+            decrement: 1,
+          },
+        },
+      });
+      
+      liked = false;
+    } else {
+      // Like - create new like
+      await prisma.resourceLike.create({
+        data: {
+          resourceId,
+          userId,
+        },
+      });
+      
+      // Increment likes count
+      await prisma.resource.update({
+        where: { id: resourceId },
+        data: {
+          likes: {
+            increment: 1,
+          },
+        },
+      });
+      
+      liked = true;
+    }
+
+    // Get updated likes count
+    const updatedResource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+      select: { likes: true },
+    });
+
+    return {
+      liked,
+      likes: updatedResource?.likes || 0,
+    };
+  }
 }
+
