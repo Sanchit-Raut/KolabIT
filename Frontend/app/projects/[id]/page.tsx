@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +17,7 @@ import type { Project } from "@/lib/types"
 
 export default function ProjectDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const projectId = params.id as string
   const { user: currentUser } = useAuth()
   const { toast } = useToast()
@@ -415,7 +416,22 @@ export default function ProjectDetailPage() {
             </Card>
 
             {/* Contact Lead */}
-            <Button variant="outline" className="w-full bg-transparent">
+            <Button 
+              variant="outline" 
+              className="w-full bg-transparent"
+              onClick={() => {
+                if (currentUser && project?.owner?.id) {
+                  router.push(`/messages/${project.owner.id}`)
+                } else if (!currentUser) {
+                  toast({
+                    title: "Authentication Required",
+                    description: "Please login to message the project lead",
+                    variant: "destructive",
+                  })
+                  router.push("/login")
+                }
+              }}
+            >
               <MessageCircle className="h-4 w-4 mr-2" />
               Message Lead
             </Button>

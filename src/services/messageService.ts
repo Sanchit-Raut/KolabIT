@@ -150,9 +150,13 @@ export class MessageService {
       data: {
         userId: recipientId,
         type: 'MESSAGE',
-        content: `New message from ${message.sender.firstName} ${message.sender.lastName}`,
-        link: `/messages/${senderId}`,
-        read: false
+        title: 'New Message',
+        message: `New message from ${message.sender.firstName} ${message.sender.lastName}`,
+        isRead: false,
+        data: {
+          senderId: senderId,
+          link: `/messages/${senderId}`
+        }
       }
     });
 

@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/auth-context"
+import { notificationApi } from "@/lib/api"
 import { Menu, X, Bell, LogOut } from "lucide-react"
 
 export function Header() {
@@ -12,6 +14,29 @@ export function Header() {
   const pathname = usePathname()
   const { user, isAuthenticated, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!isAuthenticated || !user?.id) return
+      
+      try {
+        const data: any = await notificationApi.getNotifications(1, 50)
+        const notifications = Array.isArray(data) ? data : data?.notifications || []
+        const count = notifications.filter((n: any) => !n.isRead).length
+        setUnreadCount(count)
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error)
+      }
+    }
+
+    if (isAuthenticated) {
+      fetchUnreadCount()
+      // Refresh every 60 seconds instead of 30
+      const interval = setInterval(fetchUnreadCount, 60000)
+      return () => clearInterval(interval)
+    }
+  }, [isAuthenticated, user?.id])
 
   const handleLogout = () => {
     logout()
@@ -60,8 +85,15 @@ export function Header() {
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
             <>
-              <Link href="/notifications" className="p-2 hover:bg-gray-100 rounded-lg transition-colors md:flex hidden">
+              <Link href="/notifications" className="p-2 hover:bg-gray-100 rounded-lg transition-colors md:flex hidden relative">
                 <Bell className="h-5 w-5 text-gray-600" />
+                {unreadCount > 0 && (
+                  <Badge 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-orange-500 text-white text-[10px]"
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Link>
               <div className="hidden sm:flex items-center space-x-2">
                 <Link href={`/profile/${user?.id}`}>

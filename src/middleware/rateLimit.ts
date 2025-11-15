@@ -1,10 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import config from '../config/environment';
 
-// General API rate limiting
+// General API rate limiting - More lenient for development
 export const apiLimiter = rateLimit({
-  windowMs: config.RATE_LIMIT_WINDOW_MS,
-  max: config.RATE_LIMIT_MAX_REQUESTS,
+  windowMs: 60 * 1000, // 1 minute (shorter window)
+  max: 60, // 60 requests per minute (1 per second average)
   message: {
     success: false,
     error: {
@@ -14,12 +14,16 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for message endpoints in development
+    return process.env.NODE_ENV === 'development' && req.path.startsWith('/api/messages')
+  },
 });
 
 // Strict rate limiting for auth endpoints
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
+  max: 25, // 25 attempts per window (increased from 5)
   message: {
     success: false,
     error: {
@@ -29,6 +33,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
 });
 
 // Rate limiting for password reset
