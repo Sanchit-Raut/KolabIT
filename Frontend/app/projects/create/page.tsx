@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Plus, X, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type { Skill } from "@/lib/types"
+import { normalizeUrl } from "@/lib/utils"
 
 export default function CreateProjectPage() {
   const router = useRouter()
@@ -100,8 +101,8 @@ export default function CreateProjectPage() {
         requiredSkills: selectedSkillIds,
         startDate: formData.startDate || undefined,
         endDate: formData.endDate || undefined,
-        githubUrl: formData.githubUrl || undefined,
-        liveUrl: formData.liveUrl || undefined,
+        githubUrl: normalizeUrl(formData.githubUrl) || undefined,
+        liveUrl: normalizeUrl(formData.liveUrl) || undefined,
       })
 
       router.push("/projects")

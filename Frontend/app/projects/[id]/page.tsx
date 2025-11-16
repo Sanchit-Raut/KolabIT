@@ -34,6 +34,7 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { projectApi, skillApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { normalizeUrl } from "@/lib/utils"
 import type { Project, Skill, JoinRequest } from "@/lib/types"
 
 export default function ProjectDetailPage() {
@@ -240,8 +241,8 @@ export default function ProjectDetailPage() {
         maxMembers: newMaxMembers || undefined,
         startDate: editFormData.startDate || undefined,
         endDate: editFormData.endDate || undefined,
-        githubUrl: editFormData.githubUrl || undefined,
-        liveUrl: editFormData.liveUrl || undefined,
+        githubUrl: normalizeUrl(editFormData.githubUrl) || undefined,
+        liveUrl: normalizeUrl(editFormData.liveUrl) || undefined,
         status: editFormData.status,
         requiredSkills: editFormData.requiredSkills.map(skillId => ({ skillId, required: true })),
       })
@@ -356,7 +357,7 @@ export default function ProjectDetailPage() {
   const currentMemberCount = project.members?.length || 0
   const maxMembers = project.maxMembers || 0
   const isProjectFull = maxMembers > 0 && currentMemberCount >= maxMembers
-  const isProjectClosed = project.status?.toUpperCase() === "CLOSED" || project.status?.toUpperCase() === "CANCELLED"
+  const isProjectClosed = ["CLOSED", "CANCELLED", "COMPLETED"].includes(project.status?.toUpperCase() || "")
   const hasPendingRequest = joinRequest?.status === "PENDING"
   const canRequestToJoin = !isOwner && !isMember && !hasPendingRequest && !isProjectFull && !isProjectClosed
 

@@ -17,7 +17,6 @@ import type { Project } from "@/lib/types"
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState("all")
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("all")
@@ -39,24 +38,23 @@ export default function ProjectsPage() {
     fetchProjects()
   }, [])
 
-  const types = [
-    "Web Development",
-    "Mobile Development",
-    "AI/Machine Learning",
-    "Data Science",
-    "VR/AR",
-    "Game Development",
-  ]
-
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       searchQuery === "" ||
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || project.status?.toLowerCase() === statusFilter
-    const matchesType = typeFilter === "all" || project.type === typeFilter
+    
+    // Normalize status for filtering
+    const projectStatus = project.status?.toUpperCase()
+    const filterStatus = statusFilter.toUpperCase()
+    const matchesStatus = statusFilter === "all" || projectStatus === filterStatus
 
-    return matchesSearch && matchesStatus && matchesType
+    // For the "recruiting" tab, only show RECRUITING status projects
+    if (activeTab === "recruiting" && projectStatus !== "RECRUITING") {
+      return false
+    }
+
+    return matchesSearch && matchesStatus
   })
 
   const getStatusColor = (status: string | undefined) => {
@@ -120,7 +118,19 @@ export default function ProjectsPage() {
           <div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span className="font-medium">Open</span>
+              <span className="font-medium">
+                {(() => {
+                  const status = project.status?.toUpperCase()
+                  const memberCount = project.members?.length || 0
+                  const maxMembers = project.maxMembers || 5
+                  const isFull = memberCount >= maxMembers
+                  
+                  if (status === 'COMPLETED' || status === 'CANCELLED' || status === 'CLOSED' || isFull) {
+                    return 'Closed'
+                  }
+                  return 'Open'
+                })()}
+              </span>
             </div>
             <div className="text-xs text-muted-foreground">Status</div>
           </div>
@@ -182,22 +192,12 @@ export default function ProjectsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="recruiting">Recruiting</SelectItem>
-                <SelectItem value="in progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {types.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
+                <SelectItem value="PLANNING">Planning</SelectItem>
+                <SelectItem value="RECRUITING">Recruiting</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CLOSED">Closed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -232,13 +232,15 @@ export default function ProjectsPage() {
           </TabsContent>
 
           <TabsContent value="recruiting" className="space-y-6">
-            {filteredProjects.filter((p) => p.status === "Recruiting").length > 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+              </div>
+            ) : filteredProjects.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects
-                  .filter((p) => p.status === "Recruiting")
-                  .map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
+                {filteredProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
               </div>
             ) : (
               <div className="text-center py-12">

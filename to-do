@@ -1,0 +1,58 @@
+to do
+
+1. in /projects tab, the project status shows open even if the members are full. It always shows open. it should show as closed whenever the status of project is completed, closed, cancelled, or members full.
+
+2. search filters in projects tab is rubbish values, give appropriate values which are Planning, recuriting, active,completed ,closed,cancle. and then it should work.the Allprojects/recuriting slide button is also not functioning, 
+
+3. in /projects tab, if the project status is completed, the joiing option should be disabled
+
+4. while editing project, after selecting closed the webpage is giving error on console
+
+api.ts:62  PUT http://localhost:5000/api/projects/60bf2ceb-6e6d-45f1-8206-c55850e7c903 400 (Bad Request)
+apiCall @ api.ts:62
+updateProject @ api.ts:419
+submitProjectEdit @ page.tsx:237
+callCallback @ react-dom.development.js:20565
+invokeGuardedCallbackImpl @ react-dom.development.js:20614
+invokeGuardedCallback @ react-dom.development.js:20689
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:20703
+executeDispatch @ react-dom.development.js:32128
+processDispatchQueueItemsInOrder @ react-dom.development.js:32160
+processDispatchQueue @ react-dom.development.js:32173
+dispatchEventsForPlugins @ react-dom.development.js:32184
+eval @ react-dom.development.js:32374
+batchedUpdates$1 @ react-dom.development.js:24953
+batchedUpdates @ react-dom.development.js:28844
+dispatchEventForPluginEventSystem @ react-dom.development.js:32373
+dispatchEvent @ react-dom.development.js:30141
+dispatchDiscreteEvent @ react-dom.development.js:30112
+api.ts:86 [API Error] Error: Validation failed
+    at apiCall (api.ts:81:13)
+    at async Object.updateProject (api.ts:419:22)
+    at async submitProjectEdit (page.tsx:237:7)
+
+5. change search placeholder in explore tab, just keep it as 'search by name'
+
+6. the departments asking on register should be a dropdown list consisting the departments 
+Computer Science & Engineering
+Computer Engineering
+Electronics & Telecommunication
+
+the above dropdown list should be also maintained in profile edit section, there also we should see only these 3 options
+
+7. the profile editing tab is having the skills in dropdown manner, it should be alphabatically arranged as well as it should be a search dropdown (ComboBox) so that it can be efficient.
+
+8. Normalize the project links, even if it is github.com/asadsds, make it as https://github.com/asadsds
+
+
+_______________________________________
+
+2. search filters in projects tab is rubbish values, give appropriate values which are Planning, recuriting, active,completed ,closed,cancle. 
+
+there should not be a project type dropdown in search filter filter 
+
+
+3. the search filter in student explore tab has a dropdown for dept, it should have only these values departments 
+Computer Science & Engineering
+Computer Engineering
+Electronics & Telecommunication

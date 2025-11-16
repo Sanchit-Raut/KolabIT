@@ -103,7 +103,7 @@ export default function ExplorePage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search by name, skills, or expertise..."
+              placeholder="search by name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-12 text-lg"
@@ -164,11 +164,9 @@ export default function ExplorePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="Computer Science & Engineering">Computer Science & Engineering</SelectItem>
                         <SelectItem value="Computer Engineering">Computer Engineering</SelectItem>
-                        <SelectItem value="Information Technology">Information Technology</SelectItem>
-                        <SelectItem value="Electronics">Electronics</SelectItem>
-                        <SelectItem value="Mechanical">Mechanical</SelectItem>
-                        <SelectItem value="Civil">Civil</SelectItem>
+                        <SelectItem value="Electronics & Telecommunication">Electronics & Telecommunication</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

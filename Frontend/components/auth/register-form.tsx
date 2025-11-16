@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
@@ -27,6 +28,10 @@ export function RegisterForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleDepartmentChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, department: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,15 +131,20 @@ export function RegisterForm() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">Department (Optional)</label>
-            <Input
-              type="text"
-              name="department"
-              placeholder="Computer Science"
+            <Select
               value={formData.department}
-              onChange={handleChange}
+              onValueChange={handleDepartmentChange}
               disabled={loading}
-              className="border-gray-300"
-            />
+            >
+              <SelectTrigger className="border-gray-300">
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Computer Science & Engineering">Computer Science & Engineering</SelectItem>
+                <SelectItem value="Computer Engineering">Computer Engineering</SelectItem>
+                <SelectItem value="Electronics & Telecommunication">Electronics & Telecommunication</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

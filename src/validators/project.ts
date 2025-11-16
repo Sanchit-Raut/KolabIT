@@ -70,8 +70,8 @@ export const updateProjectValidation = [
   
   body('status')
     .optional()
-    .isIn(['RECRUITING', 'ACTIVE', 'COMPLETED', 'CANCELLED'])
-    .withMessage('Status must be one of: RECRUITING, ACTIVE, COMPLETED, CANCELLED'),
+    .isIn(['PLANNING', 'RECRUITING', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'CLOSED'])
+    .withMessage('Status must be one of: PLANNING, RECRUITING, ACTIVE, COMPLETED, CANCELLED, CLOSED'),
   
   body('type')
     .optional()

@@ -12,11 +12,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, Plus, X, Save, ArrowLeft, Loader2, AlertCircle } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Camera, Plus, X, Save, ArrowLeft, Loader2, AlertCircle, Check, ChevronsUpDown } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { authApi, userApi, skillApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 import type { User, UserSkill } from "@/lib/types"
 
 interface LocalUserSkill {
@@ -45,6 +48,7 @@ export default function EditProfilePage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [openSkillCombobox, setOpenSkillCombobox] = useState(false)
 
   useEffect(() => {
     if (!authLoading && currentUser) {
@@ -62,12 +66,14 @@ export default function EditProfilePage() {
       // Fetch available skills
       const skillsData = await skillApi.getAllSkills()
       const skillList = skillsData?.data || []
-      setAvailableSkills(
-        skillList.map((s: any) => ({
+      // Sort skills alphabetically by name
+      const sortedSkills = skillList
+        .map((s: any) => ({
           id: s.id,
           name: s.name,
-        })),
-      )
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+      setAvailableSkills(sortedSkills)
 
       // Fetch user's current skills
       if (currentUser?.id) {
@@ -405,12 +411,9 @@ export default function EditProfilePage() {
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Computer Science & Engineering">Computer Science & Engineering</SelectItem>
                       <SelectItem value="Computer Engineering">Computer Engineering</SelectItem>
-                      <SelectItem value="Information Technology">Information Technology</SelectItem>
-                      <SelectItem value="Electronics Engineering">Electronics Engineering</SelectItem>
-                      <SelectItem value="Electronics and Telecommunications">Electronics and Telecommunications</SelectItem>
-                      <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
-                      <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
+                      <SelectItem value="Electronics & Telecommunication">Electronics & Telecommunication</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground">Your academic department</p>
@@ -519,21 +522,53 @@ export default function EditProfilePage() {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="skill-select">Skill Name *</Label>
-                    <Select
-                      value={newSkill.skillId}
-                      onValueChange={(value) => setNewSkill({ ...newSkill, skillId: value })}
-                    >
-                      <SelectTrigger id="skill-select">
-                        <SelectValue placeholder="Select a skill" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSkills.map((skill) => (
-                          <SelectItem key={skill.id} value={skill.id}>
-                            {skill.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openSkillCombobox} onOpenChange={setOpenSkillCombobox}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          role="combobox"
+                          aria-expanded={openSkillCombobox}
+                          className={cn(
+                            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          )}
+                        >
+                          <span className={cn(!newSkill.skillId && "text-muted-foreground")}>
+                            {newSkill.skillId
+                              ? availableSkills.find((skill) => skill.id === newSkill.skillId)?.name
+                              : "Select a skill..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search skills..." />
+                          <CommandList>
+                            <CommandEmpty>No skill found.</CommandEmpty>
+                            <CommandGroup>
+                              {availableSkills.map((skill) => (
+                                <CommandItem
+                                  key={skill.id}
+                                  value={skill.name}
+                                  onSelect={() => {
+                                    setNewSkill({ ...newSkill, skillId: skill.id })
+                                    setOpenSkillCombobox(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newSkill.skillId === skill.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {skill.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="proficiency">Proficiency *</Label>
