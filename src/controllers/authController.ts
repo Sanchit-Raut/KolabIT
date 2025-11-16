@@ -39,6 +39,19 @@ export class AuthController {
   });
 
   /**
+   * Resend verification email
+   */
+  static resendVerification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    
+    console.log('🎯 [Controller] Resend verification called for:', email);
+    const result = await AuthService.resendVerificationEmail(email);
+    console.log('🎯 [Controller] Service returned:', result);
+    
+    ResponseUtils.success(res, result);
+  });
+
+  /**
    * Forgot password
    */
   static forgotPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

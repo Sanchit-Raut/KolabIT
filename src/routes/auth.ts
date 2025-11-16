@@ -16,6 +16,7 @@ const router = Router();
 router.post('/register', authLimiter, registerValidation, handleValidationErrors, AuthController.register);
 router.post('/login', authLimiter, loginValidation, handleValidationErrors, AuthController.login);
 router.get('/verify-email/:token', AuthController.verifyEmail);
+router.post('/resend-verification', authLimiter, AuthController.resendVerification);
 router.post('/forgot-password', passwordResetLimiter, forgotPasswordValidation, handleValidationErrors, AuthController.forgotPassword);
 router.put('/reset-password/:token', passwordResetLimiter, resetPasswordValidation, handleValidationErrors, AuthController.resetPassword);
 
