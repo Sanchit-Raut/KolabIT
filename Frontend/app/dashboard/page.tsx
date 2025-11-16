@@ -13,6 +13,27 @@ import Link from "next/link"
 import { projectApi, resourceApi, postApi } from "@/lib/api"
 import type { Project, Resource, Post } from "@/lib/types"
 
+// Helper function to calculate time ago
+const getTimeAgo = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (seconds < 60) return "just now"
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 4) return `${weeks} week${weeks > 1 ? 's' : ''} ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`
+  const years = Math.floor(days / 365)
+  return `${years} year${years > 1 ? 's' : ''} ago`
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
@@ -25,10 +46,34 @@ export default function DashboardPage() {
   const [error, setError] = useState("")
   const [stats, setStats] = useState({
     totalPoints: 0,
-    level: "Collaborator",
-    pointsToNextLevel: 3000,
+    level: 1,
+    levelName: "Collaborator",
+    pointsToNextLevel: 100,
     currentPoints: 0,
   })
+
+  // Calculate level and points based on total points
+  const calculateLevel = (points: number) => {
+    let level = 1
+    let pointsRequired = 100
+    let totalRequired = 0
+    
+    while (points >= totalRequired + pointsRequired) {
+      totalRequired += pointsRequired
+      level++
+      pointsRequired += 100 // Each level requires 100 more points than the previous
+    }
+    
+    const currentLevelPoints = points - totalRequired
+    const nextLevelPoints = pointsRequired
+    
+    return {
+      level,
+      levelName: "Collaborator",
+      currentPoints: currentLevelPoints,
+      pointsToNextLevel: nextLevelPoints,
+    }
+  }
 
   useEffect(() => {
     if (authLoading) return
@@ -44,19 +89,34 @@ export default function DashboardPage() {
 
         // Fetch user's projects
         const projectsData = await projectApi.getProjectsByUser(user.id)
-        const projectsList = Array.isArray(projectsData) ? projectsData : projectsData?.data || []
+        const projectsList = Array.isArray(projectsData) ? projectsData : (projectsData as any)?.data || []
         setProjects(projectsList)
 
         // Fetch user's resources
         const resourcesData = await resourceApi.getResourcesByUser(user.id)
-        const resourcesList = Array.isArray(resourcesData) ? resourcesData : resourcesData?.data || []
+        const resourcesList = Array.isArray(resourcesData) ? resourcesData : (resourcesData as any)?.data || []
         setResources(resourcesList)
 
-        // Fetch user's community posts
-        const postsData = await postApi.getPostsByUser(user.id)
-        const postsList = Array.isArray(postsData) ? postsData : postsData?.data || []
-        setPosts(postsList)
-        setCommunityPostCount(postsList.length)
+        // Fetch user's community posts - get all posts and filter by user
+        try {
+          const postsData = await postApi.getPosts({ page: 1, limit: 100 })
+          const allPosts = Array.isArray(postsData) ? postsData : (postsData as any)?.data || []
+          const userPosts = allPosts.filter((post: Post) => post.authorId === user.id)
+          setPosts(userPosts)
+          setCommunityPostCount(userPosts.length)
+        } catch (err) {
+          console.error("Error fetching posts:", err)
+          setPosts([])
+          setCommunityPostCount(0)
+        }
+
+        // Calculate level based on activities
+        const totalPoints = (projectsList.length * 50) + (resourcesList.length * 30) + (posts.length * 20)
+        const levelStats = calculateLevel(totalPoints)
+        setStats({
+          totalPoints,
+          ...levelStats,
+        })
 
         setError("")
       } catch (err) {
@@ -75,7 +135,7 @@ export default function DashboardPage() {
       id: 1,
       type: "project",
       title: projects.length > 0 ? `Working on ${projects[0]?.title || "a project"}` : "No active projects",
-      timestamp: "2 hours ago",
+      timestamp: projects.length > 0 && projects[0]?.createdAt ? getTimeAgo(projects[0].createdAt) : "N/A",
       icon: FolderOpen,
       color: "text-blue-500",
     },
@@ -83,15 +143,15 @@ export default function DashboardPage() {
       id: 2,
       type: "resource",
       title: resources.length > 0 ? `Shared ${resources[0]?.title || "a resource"}` : "No resources shared",
-      timestamp: "5 hours ago",
+      timestamp: resources.length > 0 && resources[0]?.createdAt ? getTimeAgo(resources[0].createdAt) : "N/A",
       icon: BookOpen,
       color: "text-green-500",
     },
     {
       id: 3,
       type: "community",
-      title: communityPostCount > 0 ? `Posted ${communityPostCount} community post(s)` : "No community posts",
-      timestamp: "1 day ago",
+      title: posts.length > 0 ? `Posted: ${posts[0]?.title || "Untitled"}` : "No community posts",
+      timestamp: posts.length > 0 && posts[0]?.createdAt ? getTimeAgo(posts[0].createdAt) : "N/A",
       icon: MessageCircle,
       color: "text-purple-500",
     },
@@ -181,15 +241,12 @@ export default function DashboardPage() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
             <TabsTrigger value="achievements" className="hidden md:flex">
               Achievements
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="hidden md:flex">
-              Notifications
             </TabsTrigger>
           </TabsList>
 
@@ -234,8 +291,8 @@ export default function DashboardPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-500">{stats.level}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-3xl font-bold text-orange-500">Level {stats.level}</div>
+                        <div className="text-sm text-muted-foreground mt-1">
                           {stats.currentPoints} / {stats.pointsToNextLevel} points
                         </div>
                       </div>
@@ -342,19 +399,6 @@ export default function DashboardPage() {
               <CardContent className="p-12 text-center">
                 <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-600">Achievements will be displayed here based on your activities</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <h2 className="text-2xl font-bold">Notifications</h2>
-            <Card>
-              <CardContent className="p-12 text-center">
-                <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  Check the notifications page for updates on your projects and interactions
-                </p>
               </CardContent>
             </Card>
           </TabsContent>
