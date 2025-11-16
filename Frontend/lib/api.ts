@@ -455,6 +455,54 @@ export const projectApi = {
     const response = await apiCall(`/projects/user/${userId}`)
     return response.data
   },
+
+  // Join Request Management
+  getJoinRequests: async (projectId: string) => {
+    const response = await apiCall(`/projects/${projectId}/join-requests`)
+    return response.data
+  },
+
+  getMyJoinRequests: async () => {
+    const response = await apiCall('/projects/my-join-requests')
+    return response.data
+  },
+
+  updateJoinRequest: async (projectId: string, requestId: string, status: 'ACCEPTED' | 'REJECTED') => {
+    const response = await apiCall(`/projects/${projectId}/join-request/${requestId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    })
+    return response.data
+  },
+
+  // Resource Linking
+  linkResource: async (projectId: string, resourceId: string) => {
+    const response = await apiCall(`/projects/${projectId}/resources`, {
+      method: 'POST',
+      body: JSON.stringify({ resourceId }),
+    })
+    return response.data
+  },
+
+  unlinkResource: async (projectId: string, resourceId: string) => {
+    const response = await apiCall(`/projects/${projectId}/resources/${resourceId}`, {
+      method: 'DELETE',
+    })
+    return response.data
+  },
+
+  getProjectResources: async (projectId: string) => {
+    const response = await apiCall(`/projects/${projectId}/resources`)
+    return response.data
+  },
+
+  // Member Management
+  removeMember: async (projectId: string, memberId: string) => {
+    const response = await apiCall(`/projects/${projectId}/members/${memberId}`, {
+      method: 'DELETE',
+    })
+    return response.data
+  },
 }
 
 // ============================================
@@ -547,6 +595,13 @@ export const skillApi = {
   getSkillById: async (skillId: string) => {
     const response = await apiCall(`/skills/${skillId}`)
     return response.data
+  },
+
+  getUserSkills: async (userId: string) => {
+    const response = await apiCall(`/users/${userId}/skills`)
+    return {
+      data: Array.isArray(response.data) ? response.data : response.data?.data || response.data?.items || [],
+    }
   },
 
   getSkillsByCategory: async (category: string) => {

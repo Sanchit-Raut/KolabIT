@@ -9,19 +9,32 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, Download, Heart, Star, Upload, Loader2, FileText, Video, Link as LinkIcon } from "lucide-react"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
+import { Search, Download, Heart, Star, Upload, Loader2, FileText, Video, Link as LinkIcon, FolderPlus, MoreVertical } from "lucide-react"
 import Link from "next/link"
-import { resourceApi } from "@/lib/api"
-import type { Resource } from "@/lib/types"
+import { resourceApi, projectApi } from "@/lib/api"
+import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import type { Resource, Project } from "@/lib/types"
 
 export default function ResourcesPage() {
   const router = useRouter()
+  const { user } = useAuth()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSubject, setSelectedSubject] = useState("all")
   const [selectedType, setSelectedType] = useState("all")
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [userProjects, setUserProjects] = useState<Project[]>([])
 
   // Get unique subjects and types from resources
   const subjects = ["all", ...new Set(resources.map(r => r.subject).filter(Boolean))]
@@ -47,6 +60,37 @@ export default function ResourcesPage() {
 
     fetchResources()
   }, [])
+
+  useEffect(() => {
+    const fetchUserProjects = async () => {
+      if (!user) return
+      try {
+        const data = await projectApi.getProjectsByUser(user.id) as any
+        const ownedProjects = data?.data?.filter((p: Project) => p.ownerId === user.id) || []
+        setUserProjects(ownedProjects)
+      } catch (err) {
+        console.error("Error fetching user projects:", err)
+      }
+    }
+
+    fetchUserProjects()
+  }, [user])
+
+  const handleLinkToProject = async (resourceId: string, projectId: string, projectTitle: string) => {
+    try {
+      await projectApi.linkResource(projectId, resourceId)
+      toast({
+        title: "Success",
+        description: `Resource linked to "${projectTitle}"`,
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to link resource",
+        variant: "destructive",
+      })
+    }
+  }
 
   const filteredResources = resources
     .filter((r) => selectedSubject === "all" || r.subject === selectedSubject)
@@ -186,6 +230,38 @@ export default function ResourcesPage() {
                       <span className="text-muted-foreground text-xs ml-1">
                         ({resource.ratings?.length || 0})
                       </span>
+                      
+                      {/* Add to Project Dropdown */}
+                      {user && userProjects.length > 0 && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="ml-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuLabel>Add to Project</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {userProjects.map((project) => (
+                              <DropdownMenuItem
+                                key={project.id}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLinkToProject(resource.id, project.id, project.title)
+                                }}
+                              >
+                                <FolderPlus className="h-4 w-4 mr-2" />
+                                {project.title}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

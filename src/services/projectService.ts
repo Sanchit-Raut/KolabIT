@@ -11,6 +11,7 @@ import {
   UpdateTaskData,
   PaginatedResponse,
 } from '../types';
+import { NotificationService } from './notificationService';
 
 export class ProjectService {
   /**
@@ -530,7 +531,8 @@ export class ProjectService {
   static async updateProject(
     projectId: string,
     userId: string,
-    updateData: UpdateProjectData
+    updateData: UpdateProjectData,
+    requiredSkills?: Array<{ skillId: string; required: boolean }>
   ): Promise<ProjectData> {
     // Check if project exists and user is owner
     const project = await prisma.project.findUnique({
@@ -543,6 +545,23 @@ export class ProjectService {
 
     if (project.ownerId !== userId) {
       throw new Error('Only project owner can update the project');
+    }
+
+    // Update required skills if provided
+    if (requiredSkills && requiredSkills.length > 0) {
+      // Delete existing required skills
+      await prisma.projectSkill.deleteMany({
+        where: { projectId },
+      });
+
+      // Create new required skills
+      await prisma.projectSkill.createMany({
+        data: requiredSkills.map(skill => ({
+          projectId,
+          skillId: skill.skillId,
+          required: skill.required,
+        })),
+      });
     }
 
     const updatedProject = await prisma.project.update({
@@ -815,6 +834,22 @@ export class ProjectService {
       },
     });
 
+    // Send notification to project owner about new join request
+    await NotificationService.createNotification({
+      userId: project.ownerId,
+      type: 'PROJECT',
+      title: 'New Join Request',
+      message: `${joinRequest.user.firstName} ${joinRequest.user.lastName} wants to join "${project.title}"`,
+      data: {
+        projectId: project.id,
+        projectTitle: project.title,
+        requestId: joinRequest.id,
+        requesterId: userId,
+        requesterName: `${joinRequest.user.firstName} ${joinRequest.user.lastName}`,
+        action: 'new_join_request',
+      },
+    });
+
     return {
       id: joinRequest.id,
       projectId: joinRequest.projectId,
@@ -940,6 +975,44 @@ export class ProjectService {
           projectId,
           userId: joinRequest.userId,
           role: 'MEMBER',
+        },
+      });
+
+      // Send acceptance notification to user
+      await NotificationService.createNotification({
+        userId: joinRequest.userId,
+        type: 'PROJECT',
+        title: 'Join Request Accepted',
+        message: `Your request to join "${project.title}" has been accepted! Welcome to the team.`,
+        data: {
+          projectId: project.id,
+          projectTitle: project.title,
+          action: 'join_request_accepted',
+        },
+      });
+
+      // Check if project is now full and auto-close
+      const newMemberCount = await prisma.projectMember.count({
+        where: { projectId },
+      });
+
+      if (project.maxMembers && newMemberCount >= project.maxMembers) {
+        await prisma.project.update({
+          where: { id: projectId },
+          data: { status: 'CLOSED' },
+        });
+      }
+    } else if (status === 'REJECTED') {
+      // Send rejection notification to user
+      await NotificationService.createNotification({
+        userId: joinRequest.userId,
+        type: 'PROJECT',
+        title: 'Join Request Not Accepted',
+        message: `Your request to join "${project.title}" was not accepted at this time.`,
+        data: {
+          projectId: project.id,
+          projectTitle: project.title,
+          action: 'join_request_rejected',
         },
       });
     }
@@ -1216,4 +1289,236 @@ export class ProjectService {
       assignee: (updatedTask as any).assignee as any,
     };
   }
+
+  /**
+   * Get join requests for a project (owner only)
+   */
+  static async getJoinRequests(projectId: string, userId: string) {
+    // Verify user is project owner
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    if (project.ownerId !== userId) {
+      throw new Error('Only project owner can view join requests');
+    }
+
+    const joinRequests = await prisma.joinRequest.findMany({
+      where: { projectId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            department: true,
+            year: true,
+            semester: true,
+            rollNumber: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return joinRequests;
+  }
+
+  /**
+   * Get user's join requests
+   */
+  static async getMyJoinRequests(userId: string) {
+    const joinRequests = await prisma.joinRequest.findMany({
+      where: { userId },
+      include: {
+        project: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return joinRequests;
+  }
+
+  /**
+   * Get project resources
+   */
+  static async getProjectResources(projectId: string) {
+    // Check if project_resources table exists, if not return empty array
+    try {
+      const projectResources = await prisma.$queryRaw<any[]>`
+        SELECT r.*, pr.created_at as linked_at
+        FROM resources r
+        JOIN project_resources pr ON r.id = pr.resource_id
+        WHERE pr.project_id = ${projectId}
+        ORDER BY pr.created_at DESC
+      `;
+
+      return projectResources;
+    } catch (error) {
+      // If table doesn't exist, return empty array
+      console.warn('project_resources table may not exist:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Link resource to project
+   */
+  static async linkResource(projectId: string, resourceId: string, userId: string) {
+    // Verify user is project member or owner
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { userId },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    const isMember = project.members.length > 0 || project.ownerId === userId;
+    if (!isMember) {
+      throw new Error('Only project members can link resources');
+    }
+
+    // Check if resource exists
+    const resource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+    });
+
+    if (!resource) {
+      throw new Error('Resource not found');
+    }
+
+    // Link resource (using raw query since table might not be in schema)
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO project_resources (id, project_id, resource_id, created_at)
+        VALUES (gen_random_uuid()::text, ${projectId}, ${resourceId}, NOW())
+        ON CONFLICT (project_id, resource_id) DO NOTHING
+      `;
+
+      return { projectId, resourceId };
+    } catch (error) {
+      throw new Error('Failed to link resource. project_resources table may not exist.');
+    }
+  }
+
+  /**
+   * Unlink resource from project
+   */
+  static async unlinkResource(projectId: string, resourceId: string, userId: string) {
+    // Verify user is project member or owner
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { userId },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    const isMember = project.members.length > 0 || project.ownerId === userId;
+    if (!isMember) {
+      throw new Error('Only project members can unlink resources');
+    }
+
+    // Unlink resource
+    try {
+      await prisma.$executeRaw`
+        DELETE FROM project_resources
+        WHERE project_id = ${projectId} AND resource_id = ${resourceId}
+      `;
+
+      return { message: 'Resource unlinked successfully' };
+    } catch (error) {
+      throw new Error('Failed to unlink resource');
+    }
+  }
+
+  /**
+   * Remove member from project (owner only)
+   */
+  static async removeMember(
+    projectId: string,
+    memberId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    // Check if project exists and user is owner
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { id: memberId },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Only project owner can remove members
+    if (project.ownerId !== userId) {
+      throw new Error('Only project owner can remove members');
+    }
+
+    // Check if member exists in project
+    if (project.members.length === 0) {
+      throw new Error('Member not found in this project');
+    }
+
+    const member = project.members[0];
+
+    // Prevent owner from removing themselves
+    if (member.userId === project.ownerId) {
+      throw new Error('Project owner cannot be removed. Transfer ownership first or delete the project.');
+    }
+
+    // Remove the member
+    await prisma.projectMember.delete({
+      where: { id: memberId },
+    });
+
+    // Delete the join request so the user can request to join again
+    // This allows removed members to re-apply to the project
+    await prisma.joinRequest.deleteMany({
+      where: {
+        projectId,
+        userId: member.userId,
+      },
+    });
+
+    // Send notification to the removed member
+    await NotificationService.createNotification({
+      userId: member.userId,
+      type: 'PROJECT_MEMBER_REMOVED',
+      title: 'Removed from Project',
+      message: `You have been removed from the project "${project.title}"`,
+      data: { projectId, projectTitle: project.title },
+    });
+
+    return { message: 'Member removed successfully' };
+  }
 }
+

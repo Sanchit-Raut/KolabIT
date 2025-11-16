@@ -100,11 +100,40 @@ export default function NotificationsPage() {
     // Mark as read
     await markAsRead(notif.id)
     
-    // Navigate to the appropriate page
-    if (notif.data && typeof notif.data === 'object' && 'link' in notif.data) {
-      const link = (notif.data as any).link
-      if (link) {
-        router.push(link)
+    // Navigate to the appropriate page based on notification type and data
+    if (notif.data && typeof notif.data === 'object') {
+      const data = notif.data as any
+      
+      // Check for explicit link first
+      if (data.link) {
+        router.push(data.link)
+        return
+      }
+      
+      // Handle different notification types
+      const type = notif.type.toUpperCase()
+      
+      // Project-related notifications
+      if (data.projectId && (
+        type === 'JOIN_REQUEST' || 
+        type === 'JOIN_REQUEST_RESPONSE' ||
+        type === 'PROJECT_INVITE' ||
+        type.includes('PROJECT')
+      )) {
+        router.push(`/projects/${data.projectId}`)
+        return
+      }
+      
+      // Resource-related notifications
+      if (data.resourceId && type.includes('RESOURCE')) {
+        router.push(`/resources/${data.resourceId}`)
+        return
+      }
+      
+      // User profile-related notifications
+      if (data.userId && (type === 'SKILL_ENDORSEMENT' || type === 'FOLLOW')) {
+        router.push(`/users/${data.userId}`)
+        return
       }
     }
   }
