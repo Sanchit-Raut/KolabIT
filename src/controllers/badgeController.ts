@@ -19,7 +19,12 @@ export class BadgeController {
   static getUserBadges = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
     
+    console.log('🏆 [BADGE CONTROLLER] Getting badges for userId:', userId);
+    
     const badges = await BadgeService.getUserBadges(userId);
+    
+    console.log('🏆 [BADGE CONTROLLER] Found badges:', badges.length);
+    console.log('🏆 [BADGE CONTROLLER] Badge details:', JSON.stringify(badges, null, 2));
     
     ResponseUtils.success(res, badges);
   });

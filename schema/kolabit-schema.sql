@@ -370,8 +370,7 @@ INSERT INTO skills (name, category, description, icon, created_at) VALUES
 INSERT INTO badges (name, description, icon, category, criteria) VALUES
 ('Skill Starter', 'Added your first skill to profile', '🎯', 'SKILL', '{"minSkills": 1}'),
 ('Skill Master', 'Added 5 or more skills', '🏆', 'SKILL', '{"minSkills": 5}'),
-('Skill Expert', 'Have an EXPERT level skill', '⭐', 'SKILL', '{"minProficiency": "EXPERT"}'),
-('Well Endorsed', 'Received 10 or more endorsements', '👍', 'SKILL', '{"minEndorsements": 10}');
+('Skill Expert', 'Have an EXPERT level skill', '⭐', 'SKILL', '{"minProficiency": "EXPERT"}');
 
 -- Contribution Badges
 INSERT INTO badges (name, description, icon, category, criteria) VALUES

@@ -347,6 +347,13 @@ export const userApi = {
     return response.data
   },
 
+  deleteSkill: async (skillId: string) => {
+    const response = await apiCall(`/users/skills/${skillId}`, {
+      method: "DELETE",
+    })
+    return response.data
+  },
+
   endorseSkill: async (userId: string, skillId: string) => {
     const response = await apiCall(`/users/${userId}/skills/${skillId}/endorse`, {
       method: "POST",

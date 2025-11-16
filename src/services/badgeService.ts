@@ -27,6 +27,8 @@ export class BadgeService {
    * Get user's badges
    */
   static async getUserBadges(userId: string): Promise<UserBadgeData[]> {
+    console.log('🏆 [BADGE SERVICE] Querying badges for userId:', userId);
+    
     const userBadges = await prisma.userBadge.findMany({
       where: { userId },
       include: {
@@ -34,6 +36,9 @@ export class BadgeService {
       },
       orderBy: { earnedAt: 'desc' },
     });
+
+    console.log('🏆 [BADGE SERVICE] Raw userBadges from DB:', userBadges.length);
+    console.log('🏆 [BADGE SERVICE] Raw data:', JSON.stringify(userBadges, null, 2));
 
     return userBadges.map(ub => ({
       id: ub.id,
@@ -55,6 +60,7 @@ export class BadgeService {
    * Check and award badges
    */
   static async checkAndAwardBadges(userId: string): Promise<{ message: string; newBadges: BadgeData[] }> {
+    console.log('🏆 [BADGE SERVICE] Starting badge check for user:', userId);
     const newBadges: BadgeData[] = [];
 
     // Get user's current badges
@@ -64,20 +70,25 @@ export class BadgeService {
     });
 
     const userBadgeIds = userBadges.map(ub => ub.badgeId);
+    console.log('🏆 [BADGE SERVICE] User already has badges:', userBadgeIds);
 
     // Get all available badges
     const allBadges = await prisma.badge.findMany();
+    console.log('🏆 [BADGE SERVICE] Total badges in system:', allBadges.length);
 
     // Check each badge criteria
     for (const badge of allBadges) {
       if (userBadgeIds.includes(badge.id)) {
+        console.log(`⏭️  [BADGE SERVICE] Skipping ${badge.name} - already earned`);
         continue; // User already has this badge
       }
 
+      console.log(`🔍 [BADGE SERVICE] Checking ${badge.name} (${badge.category})...`);
       let shouldAward = false;
 
       try {
         const criteria = JSON.parse(badge.criteria);
+        console.log(`   Criteria:`, criteria);
         
         switch (badge.category) {
           case 'SKILL':
@@ -93,6 +104,8 @@ export class BadgeService {
             shouldAward = await this.checkSpecialBadgeCriteria(userId, criteria);
             break;
         }
+
+        console.log(`   Result: ${shouldAward ? '✅ AWARDED' : '❌ Not qualified'}`);
 
         if (shouldAward) {
           // Award the badge
@@ -111,6 +124,8 @@ export class BadgeService {
             category: badge.category as 'SKILL' | 'CONTRIBUTION' | 'ACHIEVEMENT' | 'SPECIAL',
             criteria: badge.criteria,
           });
+          
+          console.log(`🎉 [BADGE SERVICE] Awarded badge: ${badge.name}`);
         }
       } catch (error) {
         console.error(`Error checking badge criteria for ${badge.name}:`, error);
@@ -178,10 +193,25 @@ export class BadgeService {
       minComments ? prisma.comment.count({ where: { authorId: userId } }) : 0,
     ]);
 
-    if (minProjects && projectCount < minProjects) return false;
-    if (minResources && resourceCount < minResources) return false;
-    if (minPosts && postCount < minPosts) return false;
-    if (minComments && commentCount < minComments) return false;
+    console.log(`      📊 User stats: Projects=${projectCount}, Resources=${resourceCount}, Posts=${postCount}, Comments=${commentCount}`);
+    console.log(`      📋 Requirements: Projects>=${minProjects || 0}, Resources>=${minResources || 0}, Posts>=${minPosts || 0}, Comments>=${minComments || 0}`);
+
+    if (minProjects && projectCount < minProjects) {
+      console.log(`      ❌ Failed: Projects ${projectCount} < ${minProjects}`);
+      return false;
+    }
+    if (minResources && resourceCount < minResources) {
+      console.log(`      ❌ Failed: Resources ${resourceCount} < ${minResources}`);
+      return false;
+    }
+    if (minPosts && postCount < minPosts) {
+      console.log(`      ❌ Failed: Posts ${postCount} < ${minPosts}`);
+      return false;
+    }
+    if (minComments && commentCount < minComments) {
+      console.log(`      ❌ Failed: Comments ${commentCount} < ${minComments}`);
+      return false;
+    }
 
     return true;
   }

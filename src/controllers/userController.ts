@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/userService';
+import { BadgeService } from '../services/badgeService';
+import { NotificationService } from '../services/notificationService';
 import { ResponseUtils } from '../utils/response';
 import { asyncHandler } from '../middleware/error';
 import { UserSearchParams, CreateUserSkillData } from '../types';
@@ -61,7 +63,25 @@ export class UserController {
     
     const userSkill = await UserService.addUserSkill(userId, skillData);
     
-    ResponseUtils.created(res, userSkill, 'Skill added successfully');
+    // Check for new badges
+    const badgeResult = await BadgeService.checkAndAwardBadges(userId);
+    
+    // Send notifications for new badges
+    if (badgeResult.newBadges.length > 0) {
+      for (const badge of badgeResult.newBadges) {
+        await NotificationService.createNotification({
+          userId,
+          type: 'BADGE_EARNED',
+          title: `🎉 New Badge Earned: ${badge.name}`,
+          message: badge.description,
+        });
+      }
+    }
+    
+    ResponseUtils.created(res, { 
+      userSkill, 
+      newBadges: badgeResult.newBadges 
+    }, 'Skill added successfully');
   });
 
   /**

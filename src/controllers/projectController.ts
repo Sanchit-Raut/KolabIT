@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProjectService } from '../services/projectService';
+import { BadgeService } from '../services/badgeService';
+import { NotificationService } from '../services/notificationService';
 import { ResponseUtils } from '../utils/response';
 import { asyncHandler } from '../middleware/error';
 import { CreateProjectData, UpdateProjectData, ProjectSearchParams, CreateJoinRequestData, CreateTaskData, UpdateTaskData } from '../types';
+import prisma from '../config/database';
 
 export class ProjectController {
   /**
@@ -14,7 +17,25 @@ export class ProjectController {
     
     const project = await ProjectService.createProject(ownerId, projectData);
     
-    ResponseUtils.created(res, project, 'Project created successfully');
+    // Check for new badges
+    const badgeResult = await BadgeService.checkAndAwardBadges(ownerId);
+    
+    // Send notifications for new badges
+    if (badgeResult.newBadges.length > 0) {
+      for (const badge of badgeResult.newBadges) {
+        await NotificationService.createNotification({
+          userId: ownerId,
+          type: 'BADGE_EARNED',
+          title: `🎉 New Badge Earned: ${badge.name}`,
+          message: badge.description,
+        });
+      }
+    }
+    
+    ResponseUtils.created(res, { 
+      project, 
+      newBadges: badgeResult.newBadges 
+    }, 'Project created successfully');
   });
 
   /**
@@ -102,7 +123,29 @@ export class ProjectController {
     const userId = (req as any).user.id;
     const { status } = req.body;
     
+    // Get the join request to find the requesting user's ID before updating
+    const joinRequest = await prisma.joinRequest.findUnique({
+      where: { id: requestId },
+    });
+    
     const result = await ProjectService.updateJoinRequest(id, requestId, userId, status);
+    
+    // Check for new badges for the user who joined (if accepted)
+    if (status === 'ACCEPTED' && joinRequest) {
+      const badgeResult = await BadgeService.checkAndAwardBadges(joinRequest.userId);
+      
+      // Send notifications for new badges
+      if (badgeResult.newBadges.length > 0) {
+        for (const badge of badgeResult.newBadges) {
+          await NotificationService.createNotification({
+            userId: joinRequest.userId,
+            type: 'BADGE_EARNED',
+            title: `🎉 New Badge Earned: ${badge.name}`,
+            message: badge.description,
+          });
+        }
+      }
+    }
     
     ResponseUtils.success(res, result);
   });

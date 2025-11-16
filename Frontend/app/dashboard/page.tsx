@@ -8,10 +8,67 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, FolderOpen, MessageCircle, TrendingUp, Award, Clock, Plus, Zap, Loader2 } from "lucide-react"
+import { BookOpen, FolderOpen, MessageCircle, TrendingUp, Award, Clock, Plus, Zap, Loader2, 
+  Target, Users, Share2, Heart, Star, Trophy, Sparkles, Medal, GraduationCap, 
+  Rocket, Flame, Crown } from "lucide-react"
 import Link from "next/link"
-import { projectApi, resourceApi, postApi } from "@/lib/api"
+import { projectApi, resourceApi, postApi, badgeApi } from "@/lib/api"
 import type { Project, Resource, Post } from "@/lib/types"
+
+interface Badge {
+  id: string
+  name: string
+  description: string
+  category: string
+  iconUrl?: string
+  earnedAt: string
+  badge?: {
+    id: string
+    name: string
+    description: string
+    category: string
+    icon?: string
+  }
+}
+
+// Helper function to get badge icon and color based on badge name or category
+const getBadgeIcon = (badgeName: string, category: string) => {
+  const name = badgeName.toLowerCase();
+  
+  // Specific badge icons based on name
+  if (name.includes('skill starter') || name.includes('skill master') || name.includes('skill expert')) {
+    return { Icon: GraduationCap, color: 'bg-blue-500', bgColor: 'bg-blue-100' };
+  }
+  if (name.includes('project pioneer') || name.includes('project creator')) {
+    return { Icon: Rocket, color: 'bg-purple-500', bgColor: 'bg-purple-100' };
+  }
+  if (name.includes('active contributor')) {
+    return { Icon: Flame, color: 'bg-orange-500', bgColor: 'bg-orange-100' };
+  }
+  if (name.includes('resource sharer') || name.includes('helper')) {
+    return { Icon: Share2, color: 'bg-green-500', bgColor: 'bg-green-100' };
+  }
+  if (name.includes('community member') || name.includes('discussion starter')) {
+    return { Icon: Users, color: 'bg-indigo-500', bgColor: 'bg-indigo-100' };
+  }
+  if (name.includes('popular') || name.includes('viral')) {
+    return { Icon: Heart, color: 'bg-pink-500', bgColor: 'bg-pink-100' };
+  }
+  
+  // Category-based fallbacks
+  switch (category.toUpperCase()) {
+    case 'SKILL':
+      return { Icon: Target, color: 'bg-blue-500', bgColor: 'bg-blue-100' };
+    case 'CONTRIBUTION':
+      return { Icon: Star, color: 'bg-yellow-500', bgColor: 'bg-yellow-100' };
+    case 'ACHIEVEMENT':
+      return { Icon: Trophy, color: 'bg-amber-500', bgColor: 'bg-amber-100' };
+    case 'SPECIAL':
+      return { Icon: Crown, color: 'bg-purple-500', bgColor: 'bg-purple-100' };
+    default:
+      return { Icon: Award, color: 'bg-orange-500', bgColor: 'bg-orange-100' };
+  }
+};
 
 // Helper function to calculate time ago
 const getTimeAgo = (dateString: string) => {
@@ -41,6 +98,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [resources, setResources] = useState<Resource[]>([])
   const [posts, setPosts] = useState<Post[]>([])
+  const [badges, setBadges] = useState<Badge[]>([])
   const [communityPostCount, setCommunityPostCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -86,16 +144,19 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
+        console.log("🔍 [DASHBOARD] Starting data fetch for user:", user.id)
 
         // Fetch user's projects
         const projectsData = await projectApi.getProjectsByUser(user.id)
         const projectsList = Array.isArray(projectsData) ? projectsData : (projectsData as any)?.data || []
         setProjects(projectsList)
+        console.log("📁 [DASHBOARD] Projects loaded:", projectsList.length)
 
         // Fetch user's resources
         const resourcesData = await resourceApi.getResourcesByUser(user.id)
         const resourcesList = Array.isArray(resourcesData) ? resourcesData : (resourcesData as any)?.data || []
         setResources(resourcesList)
+        console.log("📚 [DASHBOARD] Resources loaded:", resourcesList.length)
 
         // Fetch user's community posts - get all posts and filter by user
         try {
@@ -104,10 +165,37 @@ export default function DashboardPage() {
           const userPosts = allPosts.filter((post: Post) => post.authorId === user.id)
           setPosts(userPosts)
           setCommunityPostCount(userPosts.length)
+          console.log("💬 [DASHBOARD] Posts loaded:", userPosts.length)
         } catch (err) {
-          console.error("Error fetching posts:", err)
+          console.error("❌ [DASHBOARD] Error fetching posts:", err)
           setPosts([])
           setCommunityPostCount(0)
+        }
+
+        // Fetch user's badges
+        try {
+          console.log("🏆 [DASHBOARD] Fetching badges for user:", user.id)
+          const badgesData = await badgeApi.getUserBadges(user.id)
+          console.log("🏆 [DASHBOARD] Raw badges response:", badgesData)
+          
+          const badgesList = Array.isArray(badgesData) ? badgesData : (badgesData as any)?.data || []
+          console.log("🏆 [DASHBOARD] Processed badges list:", badgesList)
+          console.log("🏆 [DASHBOARD] Number of badges:", badgesList.length)
+          
+          setBadges(badgesList)
+          
+          if (badgesList.length > 0) {
+            console.log("✅ [DASHBOARD] Badge details:")
+            badgesList.forEach((badge: Badge, index: number) => {
+              console.log(`  ${index + 1}. ${badge.name} (${badge.category}) - Earned: ${badge.earnedAt}`)
+            })
+          } else {
+            console.log("⚠️ [DASHBOARD] No badges found for this user")
+          }
+        } catch (err) {
+          console.error("❌ [DASHBOARD] Error fetching badges:", err)
+          console.error("❌ [DASHBOARD] Error details:", JSON.stringify(err, null, 2))
+          setBadges([])
         }
 
         // Calculate level based on activities
@@ -117,13 +205,15 @@ export default function DashboardPage() {
           totalPoints,
           ...levelStats,
         })
+        console.log("📊 [DASHBOARD] Stats calculated - Total points:", totalPoints)
 
         setError("")
       } catch (err) {
-        console.error("Error fetching dashboard data:", err)
+        console.error("❌ [DASHBOARD] Error fetching dashboard data:", err)
         setError("Failed to load dashboard data")
       } finally {
         setLoading(false)
+        console.log("✅ [DASHBOARD] Data fetch completed")
       }
     }
 
@@ -394,13 +484,115 @@ export default function DashboardPage() {
 
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
-            <h2 className="text-2xl font-bold">Achievements</h2>
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">Achievements will be displayed here based on your activities</p>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Achievements</h2>
+              <Button
+                onClick={async () => {
+                  console.log("🔄 [MANUAL CHECK] Triggering badge check...");
+                  try {
+                    const result = await badgeApi.checkBadges();
+                    console.log("✅ [MANUAL CHECK] Badge check result:", result);
+                    alert(`Badge check complete! ${result.newBadges?.length || 0} new badges earned. Refreshing...`);
+                    // Refresh badges
+                    const badgesData = await badgeApi.getUserBadges(user.id);
+                    const badgesList = Array.isArray(badgesData) ? badgesData : (badgesData as any)?.data || [];
+                    setBadges(badgesList);
+                    console.log("🔄 [MANUAL CHECK] Badges refreshed:", badgesList.length);
+                  } catch (error) {
+                    console.error("❌ [MANUAL CHECK] Error:", error);
+                    alert("Error checking badges. Check console for details.");
+                  }
+                }}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Check for New Badges
+              </Button>
+            </div>
+            
+            {/* Total Badges Summary */}
+            <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-full bg-orange-500">
+                      <Award className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-orange-900">Total Badges Earned: {badges.length}</h3>
+                      <p className="text-sm text-orange-700">Keep contributing to earn more badges!</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
+
+            {loading ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-orange-500" />
+                  <p className="text-muted-foreground">Loading achievements...</p>
+                </CardContent>
+              </Card>
+            ) : badges.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {badges.map((badgeItem) => {
+                  // Handle nested badge structure
+                  const badgeData = badgeItem.badge || badgeItem;
+                  const badgeName = badgeData.name || 'Unknown Badge';
+                  const badgeDescription = badgeData.description || 'No description available';
+                  const badgeCategory = badgeData.category || 'GENERAL';
+                  const earnedDate = badgeItem.earnedAt;
+                  
+                  // Get appropriate icon and colors
+                  const { Icon, color, bgColor } = getBadgeIcon(badgeName, badgeCategory);
+                  
+                  return (
+                    <Card key={badgeItem.id} className="hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200 relative">
+                      {/* Small Award Icon in Top Right */}
+                      <div className={`absolute top-3 right-3 p-1.5 rounded-full ${color} shadow-md`}>
+                        <Award className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center text-center">
+                          {/* Large Icon at Top */}
+                          <div className={`p-5 rounded-full ${bgColor} mb-4 shadow-md`}>
+                            <Icon className={`h-12 w-12 ${color.replace('bg-', 'text-')}`} />
+                          </div>
+                          
+                          {/* Badge Info */}
+                          <div className="flex-1">
+                            <h3 className="font-bold text-xl mb-2">{badgeName}</h3>
+                            <p className="text-sm text-muted-foreground mb-3">{badgeDescription}</p>
+                            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                              <span className={`px-3 py-1 rounded-full ${bgColor} ${color.replace('bg-', 'text-')} font-medium`}>
+                                {badgeCategory}
+                              </span>
+                              <span>•</span>
+                              <span>{new Date(earnedDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-2">No achievements yet</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You have {projects.length} projects, {resources.length} resources, and {posts.length} posts.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Click "Check for New Badges" above to see if you qualify for any badges!
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>

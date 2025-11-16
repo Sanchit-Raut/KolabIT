@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Plus, Clock, Users, ExternalLink, MessageCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { projectApi } from "@/lib/api"
-import type { Project } from "@/lib/types"
+// importted: Got 8 marks in CNS Hooraayyyyyyy! type { Project } from "@/lib/types"
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("")

@@ -38,6 +38,7 @@ export default function EditProfilePage() {
 
   const [formData, setFormData] = useState<Partial<User>>({})
   const [userSkills, setUserSkills] = useState<LocalUserSkill[]>([])
+  const [originalSkills, setOriginalSkills] = useState<LocalUserSkill[]>([])
   const [availableSkills, setAvailableSkills] = useState<Array<{ id: string; name: string }>>([])
   const [newSkill, setNewSkill] = useState<{
     skillId: string
@@ -87,6 +88,7 @@ export default function EditProfilePage() {
             yearsOfExp: skill.yearsOfExp,
           }))
           setUserSkills(processedSkills)
+          setOriginalSkills(processedSkills) // Store original skills for comparison
         }
       }
     } catch (err) {
@@ -230,7 +232,22 @@ export default function EditProfilePage() {
       const updatedUser = await authApi.updateProfile(updateData)
       updateUser(updatedUser)
 
-      // Save skills
+      // Find skills that were removed (exist in original but not in current)
+      const currentSkillIds = userSkills.map(s => s.skillId)
+      const removedSkills = originalSkills.filter(s => !currentSkillIds.includes(s.skillId))
+      
+      // Delete removed skills
+      for (const skill of removedSkills) {
+        if (skill.skillId) {
+          try {
+            await userApi.deleteSkill(skill.skillId) // Pass skillId, not the userSkill record id
+          } catch (deleteErr) {
+            console.error("[v0] Error deleting skill:", deleteErr)
+          }
+        }
+      }
+
+      // Save/update remaining skills
       for (const skill of userSkills) {
         try {
           await userApi.addSkill({
@@ -422,7 +439,11 @@ export default function EditProfilePage() {
                   <Label htmlFor="year">Current Year</Label>
                   <Select
                     value={(formData.year || "").toString()}
-                    onValueChange={(val) => setFormData({ ...formData, year: Number.parseInt(val) || undefined })}
+                    onValueChange={(val) => {
+                      const yearNum = Number.parseInt(val) || undefined
+                      // Reset semester when year changes
+                      setFormData({ ...formData, year: yearNum, semester: undefined })
+                    }}
                   >
                     <SelectTrigger id="year">
                       <SelectValue placeholder="Select year" />
@@ -441,19 +462,30 @@ export default function EditProfilePage() {
                   <Select
                     value={(formData.semester || "").toString()}
                     onValueChange={(val) => setFormData({ ...formData, semester: Number.parseInt(val) || undefined })}
+                    disabled={!formData.year}
                   >
                     <SelectTrigger id="semester">
-                      <SelectValue placeholder="Select semester" />
+                      <SelectValue placeholder={formData.year ? "Select semester" : "Select year first"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 8 }, (_, i) => i + 1).map((sem) => (
-                        <SelectItem key={sem} value={sem.toString()}>
-                          Semester {sem}
-                        </SelectItem>
-                      ))}
+                      {(() => {
+                        // Show only relevant semesters based on year
+                        // Year 1 = Sem 1,2 | Year 2 = Sem 3,4 | Year 3 = Sem 5,6 | Year 4 = Sem 7,8
+                        const year = formData.year || 0
+                        if (year < 1 || year > 4) return null
+                        const startSem = (year - 1) * 2 + 1
+                        const endSem = year * 2
+                        return Array.from({ length: 2 }, (_, i) => startSem + i).map((sem) => (
+                          <SelectItem key={sem} value={sem.toString()}>
+                            Semester {sem}
+                          </SelectItem>
+                        ))
+                      })()}
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-muted-foreground">Your current semester</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.year ? "Your current semester" : "Please select year first"}
+                  </p>
                 </div>
               </div>
 
@@ -499,7 +531,7 @@ export default function EditProfilePage() {
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {skill.yearsOfExp} year{skill.yearsOfExp !== 1 ? "s" : ""} of experience
+                          {skill.yearsOfExp} month{skill.yearsOfExp !== 1 ? "s" : ""} of experience
                         </div>
                       </div>
                       <Button
@@ -588,16 +620,16 @@ export default function EditProfilePage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="years-of-exp">Years of Experience</Label>
+                    <Label htmlFor="months-of-exp">Months of Experience</Label>
                     <Input
-                      id="years-of-exp"
+                      id="months-of-exp"
                       type="number"
                       min="0"
                       value={newSkill.yearsOfExp.toString()}
                       onChange={(e) =>
                         setNewSkill({ ...newSkill, yearsOfExp: Number.parseInt(e.target.value, 10) || 0 })
                       }
-                      placeholder="e.g., 5"
+                      placeholder="e.g., 12"
                     />
                   </div>
                 </div>

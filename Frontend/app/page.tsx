@@ -263,7 +263,6 @@ export default function HomePage() {
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="/smiling-female-student.png" />
                     <AvatarFallback className="bg-orange-500 text-white font-semibold">SR</AvatarFallback>
                   </Avatar>
                   <div>
@@ -289,7 +288,6 @@ export default function HomePage() {
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="/male-student-confident.jpg" />
                     <AvatarFallback className="bg-orange-500 text-white font-semibold">AS</AvatarFallback>
                   </Avatar>
                   <div>
@@ -315,7 +313,6 @@ export default function HomePage() {
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="/female-student-creative.jpg" />
                     <AvatarFallback className="bg-orange-500 text-white font-semibold">VK</AvatarFallback>
                   </Avatar>
                   <div>

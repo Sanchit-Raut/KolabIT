@@ -71,3 +71,46 @@ the project details tab have resources section, i need the actual posted resourc
 - On select: link resource to that project
 - In project details: show all linked resources overview with title, type, uploader
 - after clicking that resource overview in project details, the user should be redirected to the actual resource shared.
+
+
+__________________________
+
+1. the profile edit tab, in that section, only respective semesters should be visible in the dropdown, if year is second, semsester visible should be only 3 & 4, if year is third, semester visible should be 5 & 6 and likewise.
+
+2. the experience is being taken in years, instead just write months. dont take years.
+
+3. getting static data error in /projects
+smiling-female-student.png:1 
+ GET http://localhost:3000/smiling-female-student.png 404 (Not Found)
+male-student-confident.jpg:1 
+ GET http://localhost:3000/male-student-confident.jpg 404 (Not Found)
+female-student-creative.jpg:1 
+ GET http://localhost:3000/female-student-creative.jpg 404 (Not Found)
+
+
+______________
+
+now i want to implement the badges and achieveents feature. 
+i have badges table present in the DB and also have an achivements tab present in user dashboard.
+
+
+                  id                  |        name        |            description            | icon |   category   |           criteria           
+--------------------------------------+--------------------+-----------------------------------+------+--------------+------------------------------
+ 9de9c62e-213d-4211-838e-e92500fa4956 | Skill Starter      | Added your first skill to profile | 🎯   | SKILL        | {"minSkills": 1}
+ 4b8f5b05-57df-4605-a1ef-f57e8c16f1f5 | Skill Master       | Added 5 or more skills            | 🏆   | SKILL        | {"minSkills": 5}
+ 112ddfac-85fd-4409-8b59-e869c54826fc | Skill Expert       | Have an EXPERT level skill        | ⭐   | SKILL        | {"minProficiency": "EXPERT"}
+ 7504ef45-5a2c-4c81-8a14-9a2c8d28f012 | Project Pioneer    | Joined your first project         | 🚀   | SPECIAL      | {"type": "FIRST_PROJECT"}
+ c8090337-7ca3-4dbd-bf20-15540f60cf60 | Project Creator    | Created your first project        | ✨   | CONTRIBUTION | {"minProjects": 1}
+ 23272102-df09-41c3-92c7-f414da60a11c | Active Contributor | Joined 3 or more projects         | 💪   | CONTRIBUTION | {"minProjects": 3}
+ 2986bdc7-340a-4042-b240-9e504220bc0f | Resource Sharer    | Uploaded your first resource      | 📚   | SPECIAL      | {"type": "FIRST_RESOURCE"}
+ ef548b77-4d70-4bbf-a388-d6dc27a0b6ba | Helper             | Uploaded 5 or more resources      | 🤝   | CONTRIBUTION | {"minResources": 5}
+ e01a81c5-6ca6-485e-8031-b675fe9fec39 | Community Member   | Created your first post           | 💬   | SPECIAL      | {"type": "FIRST_POST"}
+ cb483fc2-429d-4281-90df-9f71fbb92a8f | Discussion Starter | Created 10 or more posts          | 🗣️    | CONTRIBUTION | {"minPosts": 10}
+ 9de9529b-1877-40cf-a058-6e43f201f0ee | Popular Resource   | Resource downloaded 50+ times     | 🌟   | ACHIEVEMENT  | {"minDownloads": 50}
+ 94912ff8-9fb6-4889-b712-481ac34e45bc | Viral Content      | Post received 20+ likes           | 🔥   | ACHIEVEMENT  | {"minLikes": 20}
+:
+
+
+these are the badges present in my DB, so i want you to implement the badges, user should be assigned with its badges for all its respective criteria.
+after each post, like, resource, project etc. you should check for criteria of the user and if a badge is satifying the criteria, give that badge in achievements tab in dashboard, do notified the user each time he recieves a badge.
+all the badges should be visible in achivements tab of the dashboard.
