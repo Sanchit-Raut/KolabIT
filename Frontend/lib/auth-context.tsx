@@ -83,8 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      const response = await authApi.register(data)
-      setUser(response.user)
+      // Register but don't auto-login - user must verify email first
+      await authApi.register(data)
+      setUser(null) // Keep user logged out
       setError(null)
       return Promise.resolve()
     } catch (err) {

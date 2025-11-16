@@ -58,7 +58,8 @@ export function RegisterForm() {
         department: formData.department || undefined,
         year: formData.year ? Number.parseInt(formData.year) : undefined,
       })
-      router.push("/dashboard")
+      // Redirect to verification pending page instead of dashboard
+      router.push("/verification-pending")
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : "Registration failed")
     }

@@ -25,9 +25,20 @@ export function ForgotPasswordForm() {
 
     setLoading(true)
     try {
-      // In a real app, this would call an API endpoint for password reset
-      // For now, we'll simulate the call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("http://localhost:5000/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Failed to send reset email")
+      }
+
       setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send reset email")
@@ -42,7 +53,7 @@ export function ForgotPasswordForm() {
         <CardHeader>
           <CardTitle className="text-2xl text-gray-900">Check Your Email</CardTitle>
           <CardDescription className="text-gray-600">
-            We've sent a password reset link to your email address.
+            If an account exists with that email, we've sent a password reset link.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -52,7 +63,7 @@ export function ForgotPasswordForm() {
 
           <div className="text-center space-y-2">
             <p className="text-sm text-gray-600">
-              Click the link in the email to reset your password. The link will expire in 24 hours.
+              Click the link in the email to reset your password. The link will expire in 1 hour.
             </p>
             <p className="text-xs text-gray-500">Didn't receive the email? Check your spam folder or try again.</p>
           </div>

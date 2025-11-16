@@ -99,9 +99,8 @@ export const authApi = {
       body: JSON.stringify(userData),
     })
 
-    if (response.data?.token) {
-      tokenManager.setToken(response.data.token)
-    }
+    // DO NOT save token on registration - user must verify email first
+    // Token will be saved after they verify and login
 
     return response.data!
   },

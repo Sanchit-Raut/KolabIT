@@ -67,9 +67,13 @@ export class AuthService {
 
     // Send verification email
     try {
+      console.log(`📧 Sending verification email to: ${userData.email}`);
+      console.log(`🔑 Verification token: ${verificationToken.substring(0, 20)}...`);
       await EmailUtils.sendEmailVerification(userData.email, verificationToken);
+      console.log(`✅ Verification email sent successfully to: ${userData.email}`);
     } catch (error) {
-      console.error('Failed to send verification email:', error);
+      console.error('❌ Failed to send verification email:', error);
+      console.error('Error details:', error instanceof Error ? error.message : error);
       // Don't throw error here, user is created successfully
     }
 
@@ -189,6 +193,57 @@ export class AuthService {
     } catch (error) {
       throw new Error('Invalid or expired verification token');
     }
+  }
+
+  /**
+   * Resend verification email
+   */
+  static async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    console.log('🔵 [AuthService] resendVerificationEmail called for:', email);
+    
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    console.log('🔵 [AuthService] User found:', user ? `Yes (verified: ${user.isVerified})` : 'No');
+
+    if (!user) {
+      console.log('🔵 [AuthService] User not found, returning generic message');
+      // Don't reveal if user exists
+      return { message: 'If an account with that email exists and is unverified, a verification email has been sent' };
+    }
+
+    if (user.isVerified) {
+      console.log('🔵 [AuthService] User already verified, returning message');
+      return { message: 'This email is already verified' };
+    }
+
+    console.log('🔵 [AuthService] Generating new verification token...');
+    // Generate new verification token
+    const verificationToken = JWTUtils.generateEmailVerificationToken(email);
+
+    // Update user with new token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationToken,
+      },
+    });
+
+    // Send verification email
+    try {
+      console.log('🔄 [AuthService] Calling EmailUtils.sendEmailVerification...');
+      await EmailUtils.sendEmailVerification(email, verificationToken);
+      console.log('✅ [AuthService] Email sent successfully!');
+    } catch (error) {
+      console.error('❌ [AuthService] Failed to send verification email:');
+      console.error('Error object:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw new Error('Failed to send verification email');
+    }
+
+    return { message: 'Verification email sent successfully' };
   }
 
   /**
