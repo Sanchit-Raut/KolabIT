@@ -146,4 +146,63 @@ export class ProjectController {
     
     ResponseUtils.success(res, task, 'Task updated successfully');
   });
+
+  /**
+   * Get join requests for a project (owner only)
+   */
+  static getJoinRequests = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const userId = (req as any).user.id;
+    
+    const joinRequests = await ProjectService.getJoinRequests(id, userId);
+    
+    ResponseUtils.success(res, joinRequests);
+  });
+
+  /**
+   * Get user's join requests
+   */
+  static getMyJoinRequests = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = (req as any).user.id;
+    
+    const joinRequests = await ProjectService.getMyJoinRequests(userId);
+    
+    ResponseUtils.success(res, joinRequests);
+  });
+
+  /**
+   * Get project resources
+   */
+  static getProjectResources = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    
+    const resources = await ProjectService.getProjectResources(id);
+    
+    ResponseUtils.success(res, resources);
+  });
+
+  /**
+   * Link resource to project
+   */
+  static linkResource = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const userId = (req as any).user.id;
+    const { resourceId } = req.body;
+    
+    const result = await ProjectService.linkResource(id, resourceId, userId);
+    
+    ResponseUtils.created(res, result, 'Resource linked to project');
+  });
+
+  /**
+   * Unlink resource from project
+   */
+  static unlinkResource = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id, resourceId } = req.params;
+    const userId = (req as any).user.id;
+    
+    const result = await ProjectService.unlinkResource(id, resourceId, userId);
+    
+    ResponseUtils.success(res, result, 'Resource unlinked from project');
+  });
 }
