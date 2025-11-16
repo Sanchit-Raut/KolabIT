@@ -63,13 +63,24 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     const fetchUserProjects = async () => {
-      if (!user) return
+      if (!user) {
+        console.log("[DEBUG] No user logged in")
+        return
+      }
+      console.log("[DEBUG] Fetching projects for user:", user.id, user)
       try {
         const data = await projectApi.getProjectsByUser(user.id) as any
-        const ownedProjects = data?.data?.filter((p: Project) => p.ownerId === user.id) || []
+        console.log("[DEBUG] Raw API response:", data)
+        console.log("[DEBUG] Is data an array?", Array.isArray(data))
+        // The API returns the projects array directly, not wrapped in data.data
+        const projectsArray = Array.isArray(data) ? data : (data?.data || [])
+        console.log("[DEBUG] Projects array:", projectsArray)
+        const ownedProjects = projectsArray.filter((p: Project) => p.ownerId === user.id) || []
+        console.log("[DEBUG] Filtered owned projects:", ownedProjects)
+        console.log("[DEBUG] Number of owned projects:", ownedProjects.length)
         setUserProjects(ownedProjects)
       } catch (err) {
-        console.error("Error fetching user projects:", err)
+        console.error("[DEBUG] Error fetching user projects:", err)
       }
     }
 
@@ -102,6 +113,12 @@ export default function ResourcesPage() {
     const sum = resource.ratings.reduce((acc, r) => acc + r.rating, 0)
     return (sum / resource.ratings.length).toFixed(1)
   }
+
+  // Debug log on every render
+  console.log("[DEBUG RENDER] user:", user)
+  console.log("[DEBUG RENDER] userProjects:", userProjects)
+  console.log("[DEBUG RENDER] userProjects.length:", userProjects.length)
+  console.log("[DEBUG RENDER] Button should show?", user && userProjects.length > 0)
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,38 +247,6 @@ export default function ResourcesPage() {
                       <span className="text-muted-foreground text-xs ml-1">
                         ({resource.ratings?.length || 0})
                       </span>
-                      
-                      {/* Add to Project Dropdown */}
-                      {user && userProjects.length > 0 && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="ml-2"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenuLabel>Add to Project</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {userProjects.map((project) => (
-                              <DropdownMenuItem
-                                key={project.id}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleLinkToProject(resource.id, project.id, project.title)
-                                }}
-                              >
-                                <FolderPlus className="h-4 w-4 mr-2" />
-                                {project.title}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -296,16 +281,54 @@ export default function ResourcesPage() {
                         <span>{resource.likes || 0}</span>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/resources/${resource.id}`)
-                      }}
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {/* Add to Project Button */}
+                      {user && userProjects.length > 0 && (
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 z-10"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <FolderPlus className="h-4 w-4" />
+                              Add to Project
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent 
+                            align="end" 
+                            side="top"
+                            className="bg-white dark:bg-gray-950 border shadow-lg z-50"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenuLabel>Select Project</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {userProjects.map((project) => (
+                              <DropdownMenuItem
+                                key={project.id}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLinkToProject(resource.id, project.id, project.title)
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <FolderPlus className="h-4 w-4 mr-2" />
+                                {project.title}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      <Button 
+                        size="sm" 
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/resources/${resource.id}`)
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

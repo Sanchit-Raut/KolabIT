@@ -134,11 +134,17 @@ export default function ProjectDetailPage() {
   }
 
   const fetchProjectResources = async () => {
+    console.log("[DEBUG RESOURCES] Fetching resources for project:", projectId)
     try {
       const resources = await projectApi.getProjectResources(projectId)
-      setProjectResources(resources?.data || [])
+      console.log("[DEBUG RESOURCES] Raw API response:", resources)
+      console.log("[DEBUG RESOURCES] resources.data:", resources?.data)
+      const resourcesList = Array.isArray(resources) ? resources : (resources?.data || [])
+      console.log("[DEBUG RESOURCES] Final resources list:", resourcesList)
+      setProjectResources(resourcesList)
     } catch (err) {
-      console.error("Error fetching project resources:", err)
+      console.error("[DEBUG RESOURCES] Error fetching project resources:", err)
+      setProjectResources([])
     }
   }
 
@@ -678,6 +684,11 @@ export default function ProjectDetailPage() {
                                   <Heart className="h-3 w-3" />
                                   {resource.likes || 0}
                                 </span>
+                                {resource.uploader && (
+                                  <span className="text-xs">
+                                    by {resource.uploader.firstName} {resource.uploader.lastName}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <Badge variant="outline">{resource.type}</Badge>

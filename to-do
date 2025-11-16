@@ -56,3 +56,18 @@ there should not be a project type dropdown in search filter filter
 Computer Science & Engineering
 Computer Engineering
 Electronics & Telecommunication
+
+
+
+______________________________
+the project details tab have resources section, i need the actual posted resources in that section for that you have to do
+
+- Show resources linked to this project
+- Two options for implementation:
+- Add "Add to Project" button on each resource card in /resources page
+- there should be all active projects of that user should be visible where he can add that resource 
+- Add dropdown button on each resource card: "Add to Project"
+- Show list of user's owned/joined projects
+- On select: link resource to that project
+- In project details: show all linked resources overview with title, type, uploader
+- after clicking that resource overview in project details, the user should be redirected to the actual resource shared.
