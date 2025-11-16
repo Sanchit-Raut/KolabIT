@@ -75,12 +75,32 @@ export default function MyJoinRequestsPage() {
           for (const request of requests) {
             if (request.user?.id) {
               try {
-                const userSkills = await skillApi.getUserSkills(request.user.id)
-                console.log('[DEBUG] User skills response:', userSkills)
-                console.log('[DEBUG] Is array?', Array.isArray(userSkills))
-                request.user.skills = Array.isArray(userSkills) ? userSkills : []
+                const userSkillsResponse = await skillApi.getUserSkills(request.user.id)
+                console.log('[DEBUG] User skills response:', userSkillsResponse)
+                console.log('[DEBUG] User ID:', request.user.id)
+                
+                // Handle different response structures
+                let userSkills = userSkillsResponse
+                
+                // Check if response has a nested data property
+                if (userSkillsResponse && typeof userSkillsResponse === 'object' && 'data' in userSkillsResponse) {
+                  userSkills = userSkillsResponse.data
+                }
+                
+                // Ensure it's an array
+                if (Array.isArray(userSkills)) {
+                  request.user.skills = userSkills
+                  console.log('[DEBUG] Set user skills (array):', userSkills.length, 'skills')
+                } else if (userSkills && typeof userSkills === 'object') {
+                  // If it's an object, try to extract array
+                  request.user.skills = Object.values(userSkills)
+                  console.log('[DEBUG] Set user skills (converted from object):', request.user.skills.length, 'skills')
+                } else {
+                  request.user.skills = []
+                  console.log('[DEBUG] No valid skills found, set to empty array')
+                }
               } catch (err) {
-                console.warn('Failed to fetch user skills:', err)
+                console.error('Failed to fetch user skills:', err)
                 request.user.skills = []
               }
             }
@@ -107,22 +127,40 @@ export default function MyJoinRequestsPage() {
   }
 
   const calculateMatchedSkills = (request: JoinRequestWithDetails) => {
+    console.log('[MATCH DEBUG] Calculating skills for request:', request.id)
+    console.log('[MATCH DEBUG] User skills:', request.user?.skills)
+    console.log('[MATCH DEBUG] Required skills:', request.project?.requiredSkills)
+    
     if (!request.user?.skills || !request.project?.requiredSkills) {
-      return { count: 0, matched: [] }
+      console.log('[MATCH DEBUG] Missing user skills or required skills')
+      return { count: 0, matched: [], unmatched: request.project?.requiredSkills || [] }
     }
 
     // Ensure skills is an array
     const skills = Array.isArray(request.user.skills) ? request.user.skills : []
     if (skills.length === 0) {
-      return { count: 0, matched: [] }
+      console.log('[MATCH DEBUG] User has no skills')
+      return { count: 0, matched: [], unmatched: request.project.requiredSkills }
     }
 
-    const userSkillIds = skills.map(us => us.skillId)
-    const matched = request.project.requiredSkills.filter(rs => 
-      userSkillIds.includes(rs.skillId)
+    // Extract skill IDs from user's skills
+    const userSkillIds = skills.map(us => us.skillId).filter(Boolean)
+    console.log('[MATCH DEBUG] User skill IDs:', userSkillIds)
+    
+    // Find matched and unmatched required skills
+    const matched = request.project.requiredSkills.filter(rs => {
+      const isMatch = userSkillIds.includes(rs.skillId)
+      console.log('[MATCH DEBUG] Checking skill', rs.skill?.name, 'ID:', rs.skillId, 'Match:', isMatch)
+      return isMatch
+    })
+    
+    const unmatched = request.project.requiredSkills.filter(rs => 
+      !userSkillIds.includes(rs.skillId)
     )
     
-    return { count: matched.length, matched }
+    console.log('[MATCH DEBUG] Matched count:', matched.length, 'Unmatched count:', unmatched.length)
+    
+    return { count: matched.length, matched, unmatched }
   }
 
   const handleApprove = async (request: JoinRequestWithDetails) => {
@@ -333,13 +371,29 @@ export default function MyJoinRequestsPage() {
                             </span>
                           </div>
                           {matchedSkills.matched.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {matchedSkills.matched.map((rs: any) => (
-                                <Badge key={rs.id} className="bg-green-100 text-green-800">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  {rs.skill?.name}
-                                </Badge>
-                              ))}
+                            <div className="mb-3">
+                              <p className="text-xs text-muted-foreground mb-2">Matched Skills:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {matchedSkills.matched.map((rs: any) => (
+                                  <Badge key={rs.id} className="bg-green-100 text-green-800">
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    {rs.skill?.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {matchedSkills.unmatched && matchedSkills.unmatched.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-2">Missing Skills:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {matchedSkills.unmatched.map((rs: any) => (
+                                  <Badge key={rs.id} variant="outline" className="text-gray-600">
+                                    <XCircle className="h-3 w-3 mr-1" />
+                                    {rs.skill?.name}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
