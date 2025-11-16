@@ -16,8 +16,10 @@ export const updateProfileValidation = [
   body('rollNumber')
     .optional()
     .trim()
-    .isLength({ min: 3, max: 20 })
-    .withMessage('Roll number must be between 3 and 20 characters'),
+    .isNumeric()
+    .withMessage('Roll number must contain only numbers')
+    .isLength({ min: 1, max: 20 })
+    .withMessage('Roll number must be between 1 and 20 digits'),
   
   body('department')
     .optional()

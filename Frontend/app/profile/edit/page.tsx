@@ -213,6 +213,7 @@ export default function EditProfilePage() {
       const updateData: Partial<User> = {
         firstName: formData.firstName,
         lastName: formData.lastName,
+        rollNumber: formData.rollNumber,
         bio: formData.bio,
         department: formData.department,
         year: formData.year,
@@ -378,15 +379,21 @@ export default function EditProfilePage() {
                   <p className="text-sm text-muted-foreground">Contact support to change email address</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="rollNumber">Roll Number</Label>
+                  <Label htmlFor="rollNumber">Roll Number (UID)</Label>
                   <Input
                     id="rollNumber"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.rollNumber || ""}
-                    onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value.toUpperCase() })}
-                    placeholder="e.g., CSE2023001"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData({ ...formData, rollNumber: value });
+                    }}
+                    placeholder="e.g., 123456789"
                     maxLength={20}
                   />
-                  <p className="text-sm text-muted-foreground">Your college roll/registration number</p>
+                  <p className="text-sm text-muted-foreground">Your college UID (numbers only)</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">Department</Label>

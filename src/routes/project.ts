@@ -52,4 +52,7 @@ router.delete('/:id/resources/:resourceId', projectIdValidation, handleValidatio
 router.post('/:id/tasks', projectIdValidation, createTaskValidation, handleValidationErrors, ProjectController.createTask);
 router.put('/:id/tasks/:taskId', projectIdValidation, taskIdValidation, updateTaskValidation, handleValidationErrors, ProjectController.updateTask);
 
+// Members
+router.delete('/:id/members/:memberId', projectIdValidation, handleValidationErrors, ProjectController.removeMember);
+
 export default router;

@@ -9,9 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { 
   Loader2, 
   MessageCircle, 
@@ -50,12 +47,6 @@ export default function MyJoinRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState<string>("all")
   const [activeTab, setActiveTab] = useState<string>("PENDING")
-  
-  // Message modal
-  const [showMessageModal, setShowMessageModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<any>(null)
-  const [message, setMessage] = useState("")
-  const [isSendingMessage, setIsSendingMessage] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -180,31 +171,6 @@ export default function MyJoinRequestsPage() {
         description: err instanceof Error ? err.message : "Failed to reject request",
         variant: "destructive",
       })
-    }
-  }
-
-  const openMessageModal = (request: JoinRequestWithDetails) => {
-    setSelectedUser(request.user)
-    setMessage("")
-    setShowMessageModal(true)
-  }
-
-  const sendMessage = async () => {
-    if (!selectedUser || !message.trim()) return
-
-    setIsSendingMessage(true)
-    try {
-      // Navigate to messages page with the user
-      router.push(`/messages/${selectedUser.id}`)
-      setShowMessageModal(false)
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to open message",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSendingMessage(false)
     }
   }
 
@@ -392,7 +358,7 @@ export default function MyJoinRequestsPage() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => openMessageModal(request)}
+                          onClick={() => router.push(`/messages/${request.user?.id}`)}
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />
                           Chat
@@ -427,52 +393,6 @@ export default function MyJoinRequestsPage() {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Message Modal */}
-      <Dialog open={showMessageModal} onOpenChange={setShowMessageModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send Message</DialogTitle>
-            <DialogDescription>
-              Send a message to {selectedUser?.firstName} {selectedUser?.lastName}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="Type your message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMessageModal(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={sendMessage} 
-              disabled={isSendingMessage || !message.trim()}
-              className="bg-orange-500 hover:bg-orange-600"
-            >
-              {isSendingMessage ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Opening...
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Open Chat
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

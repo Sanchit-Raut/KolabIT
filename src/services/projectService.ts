@@ -531,7 +531,8 @@ export class ProjectService {
   static async updateProject(
     projectId: string,
     userId: string,
-    updateData: UpdateProjectData
+    updateData: UpdateProjectData,
+    requiredSkills?: Array<{ skillId: string; required: boolean }>
   ): Promise<ProjectData> {
     // Check if project exists and user is owner
     const project = await prisma.project.findUnique({
@@ -544,6 +545,23 @@ export class ProjectService {
 
     if (project.ownerId !== userId) {
       throw new Error('Only project owner can update the project');
+    }
+
+    // Update required skills if provided
+    if (requiredSkills && requiredSkills.length > 0) {
+      // Delete existing required skills
+      await prisma.projectSkill.deleteMany({
+        where: { projectId },
+      });
+
+      // Create new required skills
+      await prisma.projectSkill.createMany({
+        data: requiredSkills.map(skill => ({
+          projectId,
+          skillId: skill.skillId,
+          required: skill.required,
+        })),
+      });
     }
 
     const updatedProject = await prisma.project.update({
@@ -1436,6 +1454,71 @@ export class ProjectService {
     } catch (error) {
       throw new Error('Failed to unlink resource');
     }
+  }
+
+  /**
+   * Remove member from project (owner only)
+   */
+  static async removeMember(
+    projectId: string,
+    memberId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    // Check if project exists and user is owner
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { id: memberId },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Only project owner can remove members
+    if (project.ownerId !== userId) {
+      throw new Error('Only project owner can remove members');
+    }
+
+    // Check if member exists in project
+    if (project.members.length === 0) {
+      throw new Error('Member not found in this project');
+    }
+
+    const member = project.members[0];
+
+    // Prevent owner from removing themselves
+    if (member.userId === project.ownerId) {
+      throw new Error('Project owner cannot be removed. Transfer ownership first or delete the project.');
+    }
+
+    // Remove the member
+    await prisma.projectMember.delete({
+      where: { id: memberId },
+    });
+
+    // Delete the join request so the user can request to join again
+    // This allows removed members to re-apply to the project
+    await prisma.joinRequest.deleteMany({
+      where: {
+        projectId,
+        userId: member.userId,
+      },
+    });
+
+    // Send notification to the removed member
+    await NotificationService.createNotification({
+      userId: member.userId,
+      type: 'PROJECT_MEMBER_REMOVED',
+      title: 'Removed from Project',
+      message: `You have been removed from the project "${project.title}"`,
+      data: { projectId, projectTitle: project.title },
+    });
+
+    return { message: 'Member removed successfully' };
   }
 }
 

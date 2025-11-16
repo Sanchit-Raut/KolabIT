@@ -54,9 +54,17 @@ export class ProjectController {
   static updateProject = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const userId = (req as any).user.id;
-    const updateData: UpdateProjectData = req.body;
+    const { requiredSkills, ...updateData }: any = req.body;
     
-    const project = await ProjectService.updateProject(id, userId, updateData);
+    // Convert date strings to Date objects if present
+    if (updateData.startDate) {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    if (updateData.endDate) {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+    
+    const project = await ProjectService.updateProject(id, userId, updateData, requiredSkills);
     
     ResponseUtils.success(res, project, 'Project updated successfully');
   });
@@ -204,5 +212,17 @@ export class ProjectController {
     const result = await ProjectService.unlinkResource(id, resourceId, userId);
     
     ResponseUtils.success(res, result, 'Resource unlinked from project');
+  });
+
+  /**
+   * Remove member from project (owner only)
+   */
+  static removeMember = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id, memberId } = req.params;
+    const userId = (req as any).user.id;
+    
+    const result = await ProjectService.removeMember(id, memberId, userId);
+    
+    ResponseUtils.success(res, result, 'Member removed successfully');
   });
 }

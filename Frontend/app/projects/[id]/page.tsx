@@ -263,6 +263,27 @@ export default function ProjectDetailPage() {
     }
   }
 
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Are you sure you want to remove ${memberName} from the project?`)) {
+      return
+    }
+
+    try {
+      await projectApi.removeMember(projectId, memberId)
+      toast({
+        title: "Success",
+        description: `${memberName} has been removed from the project`,
+      })
+      fetchProject() // Refresh the project data
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to remove member",
+        variant: "destructive",
+      })
+    }
+  }
+
   const toggleSkill = (skillId: string) => {
     setEditFormData(prev => ({
       ...prev,
@@ -596,9 +617,22 @@ export default function ProjectDetailPage() {
                                 </div>
                               </div>
                             </div>
-                            <Badge className={getRoleColor(member.role)}>
-                              {member.role}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getRoleColor(member.role)}>
+                                {member.role}
+                              </Badge>
+                              {/* Remove button - only show to owner, and not for the owner themselves */}
+                              {isOwner && member.userId !== project.ownerId && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleRemoveMember(member.id, `${member.user?.firstName} ${member.user?.lastName}`)}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>

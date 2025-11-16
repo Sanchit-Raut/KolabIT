@@ -496,6 +496,14 @@ export const projectApi = {
     const response = await apiCall(`/projects/${projectId}/resources`)
     return response.data
   },
+
+  // Member Management
+  removeMember: async (projectId: string, memberId: string) => {
+    const response = await apiCall(`/projects/${projectId}/members/${memberId}`, {
+      method: 'DELETE',
+    })
+    return response.data
+  },
 }
 
 // ============================================
