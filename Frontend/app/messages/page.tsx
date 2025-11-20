@@ -21,6 +21,7 @@ interface Conversation {
   lastMessageTime: string
   unreadCount: number
   isVerified: boolean
+  isLastMessageFromMe: boolean
 }
 
 export default function MessagesInboxPage() {
@@ -65,7 +66,8 @@ export default function MessagesInboxPage() {
               lastMessage: msg.content,
               lastMessageTime: msg.createdAt,
               unreadCount: 0, // TODO: Implement unread count
-              isVerified: otherUser.isVerified || false
+              isVerified: otherUser.isVerified || false,
+              isLastMessageFromMe: isFromMe
             })
           }
         })
@@ -163,7 +165,7 @@ export default function MessagesInboxPage() {
                   
                   <div className="flex flex-col items-end gap-2">
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(conversation.lastMessageTime), { addSuffix: true })}
+                      {conversation.isLastMessageFromMe ? "Sent" : "Received"} • {formatDistanceToNow(new Date(conversation.lastMessageTime), { addSuffix: true })}
                     </span>
                     {conversation.unreadCount > 0 && (
                       <Badge className="bg-orange-500 text-white">

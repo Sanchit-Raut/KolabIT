@@ -51,14 +51,33 @@ export default function ExplorePage() {
         }
         console.log('[Explore] Search params:', searchParams)
         const data = await userApi.searchUsers(searchParams)
+        console.log('[Explore] Raw response data:', data)
         // Handle both direct array and paginated response
         if (Array.isArray(data)) {
-          setStudents(data)
+          console.log('[Explore] Data is array, length:', data.length)
+          // Map userSkills to skills for compatibility
+          const mappedData = data.map(user => ({
+            ...user,
+            skills: user.userSkills || user.skills
+          }))
+          setStudents(mappedData)
         } else if (data?.users) {
-          setStudents(data.users)
+          console.log('[Explore] Using data.users, length:', data.users.length)
+          const mappedData = data.users.map(user => ({
+            ...user,
+            skills: user.userSkills || user.skills
+          }))
+          setStudents(mappedData)
         } else if (data?.data) {
-          setStudents(Array.isArray(data.data) ? data.data : [])
+          console.log('[Explore] Using data.data, length:', Array.isArray(data.data) ? data.data.length : 0)
+          const rawData = Array.isArray(data.data) ? data.data : []
+          const mappedData = rawData.map(user => ({
+            ...user,
+            skills: user.userSkills || user.skills
+          }))
+          setStudents(mappedData)
         } else {
+          console.log('[Explore] No data found, setting empty array')
           setStudents([])
         }
         setError("")
@@ -224,74 +243,70 @@ export default function ExplorePage() {
             {/* Results Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <Card key={student.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start gap-3 mb-3">
-                        <Avatar className="w-14 h-14">
-                          <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.firstName} />
-                          <AvatarFallback className="bg-orange-100 text-orange-700 text-lg">
-                            {student.firstName?.[0]}{student.lastName?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg">
-                            {student.firstName} {student.lastName}
-                          </h3>
-                          <div className="flex flex-col gap-1 mt-1">
-                            {student.department && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <BookOpen className="h-3 w-3" />
-                                {student.department}
-                              </div>
-                            )}
-                            {(student.year || student.semester) && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <GraduationCap className="h-3 w-3" />
-                                {student.year && `Year ${student.year}`}
-                                {student.year && student.semester && ' • '}
-                                {student.semester && `Sem ${student.semester}`}
-                              </div>
-                            )}
+                filteredStudents.map((student) => {
+                  console.log(`[Explore] Student ${student.firstName}:`, {
+                    id: student.id,
+                    hasSkills: !!student.skills,
+                    skillsLength: student.skills?.length || 0,
+                    skills: student.skills
+                  });
+                  return (
+                  <Link key={student.id} href={`/profile/${student.id}`}>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                      <CardHeader>
+                        <div className="flex items-start gap-3 mb-3">
+                          <Avatar className="w-14 h-14">
+                            <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.firstName} />
+                            <AvatarFallback className="bg-orange-100 text-orange-700 text-lg">
+                              {student.firstName?.[0]}{student.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">
+                              {student.firstName} {student.lastName}
+                            </h3>
+                            <div className="flex flex-col gap-1 mt-1">
+                              {student.department && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <BookOpen className="h-3 w-3" />
+                                  {student.department}
+                                </div>
+                              )}
+                              {(student.year || student.semester) && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <GraduationCap className="h-3 w-3" />
+                                  {student.year && `Year ${student.year}`}
+                                  {student.year && student.semester && ' • '}
+                                  {student.semester && `Sem ${student.semester}`}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {student.bio || "No bio added"}
-                      </p>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-                      {/* Skills */}
-                      {student.skills && student.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {student.skills.slice(0, 3).map((skill: any) => (
-                            <Badge key={skill.id} variant="secondary" className="text-xs">
-                              {skill.skill?.name || skill.name}
-                            </Badge>
-                          ))}
-                          {student.skills.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{student.skills.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 pt-2">
-                        <Button asChild className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
-                          <Link href={`/profile/${student.id}`}>View Profile</Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline" title="Send Message">
-                          <Link href={`/messages/${student.id}`}>
-                            <MessageCircle className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {student.bio || "No bio added"}
+                        </p>
+                        
+                        {/* Skills */}
+                        {student.skills && student.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {student.skills.slice(0, 4).map((skill: any) => (
+                              <Badge key={skill.id} variant="secondary" className="text-xs px-2 py-0.5">
+                                {skill.skill?.name || skill.name}
+                              </Badge>
+                            ))}
+                            {student.skills.length > 4 && (
+                              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                                +{student.skills.length - 4}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </CardHeader>
+                    </Card>
+                  </Link>
+                  );
+                })
               ) : (
                 <div className="col-span-full text-center py-12">
                   <div className="w-24 h-24 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">

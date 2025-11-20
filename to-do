@@ -114,3 +114,52 @@ i have badges table present in the DB and also have an achivements tab present i
 these are the badges present in my DB, so i want you to implement the badges, user should be assigned with its badges for all its respective criteria.
 after each post, like, resource, project etc. you should check for criteria of the user and if a badge is satifying the criteria, give that badge in achievements tab in dashboard, do notified the user each time he recieves a badge.
 all the badges should be visible in achivements tab of the dashboard.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_________________-
+
+I need you to fix following features and do following tasks
+
+1. currently i am seeing basic info of the student in /explore tab. but skills are the main feature of our website. so the skills of user should be also visible in the card, below the bio of user in the /explore tab as a tag (static pill).
+2. in /projects required skills by a project should be listed in the card of each respective project (in a static pill). it should be below the project description and above the owner name. 
+3. message button from /profile.[id] wont work, giving error, make it redirect to its chat
+page.tsx:143 [v0] Error sending message: TypeError: _lib_api__WEBPACK_IMPORTED_MODULE_5__.userApi.sendMessage is not a function
+    at handleMessage (page.tsx:137:21)
+handleMessage	@	page.tsx:143
+
+4. in profle, the resources in resources tab should be clickable and redirect to the specific ones
+5. in post resource, order of the DIVs should be first resource type, then resource details, then video/article links,
+6. fix footer of landing page, remove all those unimplemented footer tags 
+7. remove 'By signing up, you agree to our Terms of Service and Privacy Policy' from /register & /login
+8. clicking community post card on /community wont open its reply, make it work
+9. sent/recieved status of last message for each chat in /messages beside the time (for ex. Sent an hour ago, recieved an hour ago for sent and recieved messages respectively)
+10. more subjects in /resources/upload (like dsa, programming, etc)
+11. clicking project card on /project should also open project details. it is doing nothing
+12. support image uploading in resources.
+----------------------------------------------------------------
+
+
+I need few more features in this websites
+1. edit resource option: an edit button to edit the shared resource by the owner.
+2. community post edit: community posts should also be editable by the owner
+3. delete comment/rating, a a delete option should be there for the user who made a reply on post or a rating on a resource.
+4. delete profie feature, a profile delete option should be given to a user inside edit profile, all the user data like his skills, his join requests,
+5. add skills in DB,
+6. in create project, a searchbar should be there at the available skills div, only search matching skills checkbox should be visible
+
+
+
+AFTER ADMIN, REPORT FEATURE FOR POST,REPLY,RATING,PROJECT,RESOURCE
+clear garbage

@@ -50,16 +50,30 @@ export default function UploadResourcePage() {
   ]
 
   const subjects = [
-    "Data Structures",
-    "Algorithms",
+    "Data Structures & Algorithms",
+    "DSA",
+    "Programming",
+    "C Programming",
+    "C++",
+    "Java",
+    "Python",
+    "JavaScript",
     "Web Development",
     "Mobile Development",
     "Database Design",
+    "DBMS",
+    "SQL",
     "AI/Machine Learning",
     "Cloud Computing",
     "DevOps",
+    "Operating Systems",
+    "Computer Networks",
+    "Software Engineering",
     "UI/UX Design",
     "Project Management",
+    "Mathematics",
+    "Discrete Mathematics",
+    "Statistics",
   ]
 
   // Redirect to login if not authenticated
@@ -73,7 +87,7 @@ export default function UploadResourcePage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type - only textual/document files
+    // Validate file type - documents and images
     const allowedTypes = [
       "application/pdf",
       "application/msword",
@@ -84,15 +98,20 @@ export default function UploadResourcePage() {
       "text/plain",
       "application/x-zip-compressed",
       "application/zip",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/gif",
+      "image/webp",
     ]
 
     const extension = file.name.split(".").pop()?.toLowerCase()
-    const isAllowedExtension = ["pdf", "doc", "docx", "xls", "xlsx", "md", "txt", "zip"].includes(extension || "")
+    const isAllowedExtension = ["pdf", "doc", "docx", "xls", "xlsx", "md", "txt", "zip", "png", "jpg", "jpeg", "gif", "webp"].includes(extension || "")
 
     if (!allowedTypes.includes(file.type) && !isAllowedExtension) {
       toast({
         title: "Invalid file type",
-        description: "Please upload PDF, DOC, EXCEL, MD or compressed files only. No images or videos.",
+        description: "Please upload PDF, DOC, EXCEL, MD, images, or compressed files only.",
         variant: "destructive",
       })
       return
@@ -333,66 +352,11 @@ export default function UploadResourcePage() {
           <CardContent className="p-4 flex gap-3">
             <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <p className="text-blue-600 text-sm">
-              Allowed formats: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), Markdown (MD), Text files, or ZIP archives.
+              Allowed formats: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), Markdown (MD), Text files, Images (PNG/JPG/GIF/WEBP), or ZIP archives.
               Maximum file size: 40MB.
             </p>
           </CardContent>
         </Card>
-
-          {/* Video / Links */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Video & Article Links</CardTitle>
-              <CardDescription>Add a YouTube URL or one or more article links (optional)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="youtube">YouTube URL</Label>
-                <Input
-                  id="youtube"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Article Links</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Link title (optional)"
-                    value={newLinkTitle}
-                    onChange={(e) => setNewLinkTitle(e.target.value)}
-                  />
-                  <Input
-                    placeholder="https://example.com/article"
-                    value={newLinkUrl}
-                    onChange={(e) => setNewLinkUrl(e.target.value)}
-                  />
-                  <Button type="button" onClick={addArticleLink} variant="outline">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-
-                {articleLinks.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {articleLinks.map((link, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 border rounded">
-                        <div>
-                          <div className="text-sm font-medium">{link.title}</div>
-                          <a className="text-xs text-muted-foreground" href={link.url} target="_blank" rel="noreferrer">{link.url}</a>
-                        </div>
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArticleLink(idx)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Resource Type Selection */}
@@ -488,6 +452,61 @@ export default function UploadResourcePage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Video / Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Video & Article Links</CardTitle>
+              <CardDescription>Add a YouTube URL or one or more article links (optional)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="youtube">YouTube URL</Label>
+                <Input
+                  id="youtube"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Article Links</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Link title (optional)"
+                    value={newLinkTitle}
+                    onChange={(e) => setNewLinkTitle(e.target.value)}
+                  />
+                  <Input
+                    placeholder="https://example.com/article"
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                  />
+                  <Button type="button" onClick={addArticleLink} variant="outline">
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {articleLinks.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {articleLinks.map((link, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <div className="text-sm font-medium">{link.title}</div>
+                          <a className="text-xs text-muted-foreground" href={link.url} target="_blank" rel="noreferrer">{link.url}</a>
+                        </div>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArticleLink(idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

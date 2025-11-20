@@ -435,3 +435,30 @@ CREATE INDEX IF NOT EXISTS idx_project_resources_resource_id ON project_resource
 
 -- Add comment to table
 COMMENT ON TABLE project_resources IS 'Links resources to projects for easy access by project members';
+
+
+
+
+-- Truncate Commands
+-- TRUNCATE TABLE analytics CASCADE;
+-- TRUNCATE TABLE badges CASCADE;
+-- TRUNCATE TABLE certifications CASCADE;
+-- TRUNCATE TABLE comments CASCADE;
+-- TRUNCATE TABLE join_requests CASCADE;
+-- TRUNCATE TABLE likes CASCADE;
+-- TRUNCATE TABLE messages CASCADE;
+-- TRUNCATE TABLE notifications CASCADE;
+-- TRUNCATE TABLE portfolios CASCADE;
+-- TRUNCATE TABLE posts CASCADE;
+-- TRUNCATE TABLE project_members CASCADE;
+-- TRUNCATE TABLE project_resources CASCADE;
+-- TRUNCATE TABLE project_skills CASCADE;
+-- TRUNCATE TABLE projects CASCADE;
+-- TRUNCATE TABLE resource_likes CASCADE;
+-- TRUNCATE TABLE resource_ratings CASCADE;
+-- TRUNCATE TABLE resources CASCADE;
+-- TRUNCATE TABLE skills CASCADE;
+-- TRUNCATE TABLE tasks CASCADE;
+-- TRUNCATE TABLE user_badges CASCADE;
+
+

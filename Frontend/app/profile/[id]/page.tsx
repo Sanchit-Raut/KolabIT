@@ -123,7 +123,7 @@ export default function ProfilePage() {
 
   const isOwnProfile = currentUser?.id === id
 
-  const handleMessage = async () => {
+  const handleMessage = () => {
     if (!currentUser) {
       toast({
         title: "Authentication Required",
@@ -133,20 +133,7 @@ export default function ProfilePage() {
       return
     }
 
-    try {
-      await userApi.sendMessage(id, "Hi! I'd like to connect with you.")
-      toast({
-        title: "Success",
-        description: "Message sent successfully",
-      })
-    } catch (err) {
-      console.error("[v0] Error sending message:", err)
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      })
-    }
+    router.push(`/messages/${id}`)
   }
 
   if (loading) {
@@ -331,14 +318,16 @@ export default function ProfilePage() {
                 {resources.length > 0 ? (
                   <div className="space-y-3">
                     {resources.map((resource) => (
-                      <div key={resource.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <h3 className="font-semibold mb-1">{resource.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
-                        <div className="flex gap-2">
-                          <Badge variant="secondary">{resource.type}</Badge>
-                          <Badge variant="outline">{resource.subject}</Badge>
+                      <Link key={resource.id} href={`/resources/${resource.id}`}>
+                        <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                          <h3 className="font-semibold mb-1">{resource.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
+                          <div className="flex gap-2">
+                            <Badge variant="secondary">{resource.type}</Badge>
+                            <Badge variant="outline">{resource.subject}</Badge>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (

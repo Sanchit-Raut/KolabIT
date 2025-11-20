@@ -319,6 +319,9 @@ export const userApi = {
     if (params.year) queryParams.append("year", params.year.toString())
     if (params.page) queryParams.append("page", params.page.toString())
     if (params.limit) queryParams.append("limit", params.limit.toString())
+    
+    // Add include parameter to get skills with user data
+    queryParams.append("include", "skills")
 
     const response = await apiCall(`/users/search?${queryParams}`)
     return response.data

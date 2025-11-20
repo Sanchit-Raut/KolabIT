@@ -377,7 +377,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-gray-100 py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -411,58 +411,6 @@ export default function HomePage() {
                 <li>
                   <Link href="/community" className="hover:text-gray-900 transition-colors">
                     Community
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4 text-gray-900">Support</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <Link href="/help" className="hover:text-gray-900 transition-colors">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/guidelines" className="hover:text-gray-900 transition-colors">
-                    Community Guidelines
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-gray-900 transition-colors">
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/feedback" className="hover:text-gray-900 transition-colors">
-                    Feedback
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4 text-gray-900">Company</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <Link href="/about" className="hover:text-gray-900 transition-colors">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/careers" className="hover:text-gray-900 transition-colors">
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/privacy" className="hover:text-gray-900 transition-colors">
-                    Privacy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-gray-900 transition-colors">
-                    Terms
                   </Link>
                 </li>
               </ul>

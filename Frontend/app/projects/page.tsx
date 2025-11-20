@@ -71,20 +71,37 @@ export default function ProjectsPage() {
   }
 
   const ProjectCard = ({ project }: { project: Project }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <CardTitle className="text-lg">{project.title}</CardTitle>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge className={getStatusColor(project.status)}>{project.status || "Open"}</Badge>
-              <Badge variant="outline">{project.type || "Project"}</Badge>
+    <Link href={`/projects/${project.id}`}>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <CardHeader>
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-1">
+              <CardTitle className="text-lg">{project.title}</CardTitle>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Badge className={getStatusColor(project.status)}>{project.status || "Open"}</Badge>
+                <Badge variant="outline">{project.type || "Project"}</Badge>
+              </div>
             </div>
           </div>
-        </div>
-        <CardDescription className="text-pretty mt-2">{project.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+          <CardDescription className="text-pretty mt-2 line-clamp-3">{project.description}</CardDescription>
+          
+          {/* Required Skills */}
+          {project.requiredSkills && project.requiredSkills.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {project.requiredSkills.slice(0, 3).map((skill: any) => (
+                <Badge key={skill.id} variant="secondary" className="text-xs px-2 py-0.5">
+                  {skill.skill?.name || skill.name}
+                </Badge>
+              ))}
+              {project.requiredSkills.length > 3 && (
+                <Badge variant="outline" className="text-xs px-2 py-0.5">
+                  +{project.requiredSkills.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
         {/* Project Leader */}
         {project.owner && (
           <div className="flex items-center gap-3">
@@ -136,23 +153,9 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button asChild variant="outline" className="flex-1 bg-transparent">
-            <Link href={`/projects/${project.id}`}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Details
-            </Link>
-          </Button>
-          {project.status === "Recruiting" && (
-            <Button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Apply
-            </Button>
-          )}
-        </div>
       </CardContent>
-    </Card>
+      </Card>
+    </Link>
   )
 
   return (

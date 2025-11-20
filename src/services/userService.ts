@@ -77,6 +77,20 @@ export class UserService {
           isVerified: true,
           createdAt: true,
           updatedAt: true,
+          userSkills: {
+            select: {
+              id: true,
+              proficiency: true,
+              yearsOfExp: true,
+              skill: {
+                select: {
+                  id: true,
+                  name: true,
+                  category: true,
+                },
+              },
+            },
+          },
         },
         skip,
         take: limit,

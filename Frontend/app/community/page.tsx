@@ -68,8 +68,9 @@ export default function CommunityPage() {
   }
 
   const PostCard = ({ post }: { post: Post }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
+    <Link href={`/community/${post.id}`}>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
@@ -118,6 +119,7 @@ export default function CommunityPage() {
         </div>
       </CardContent>
     </Card>
+    </Link>
   )
 
   return (

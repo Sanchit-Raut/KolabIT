@@ -40,6 +40,16 @@ export interface UserProfile {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  userSkills?: Array<{
+    id: string;
+    proficiency: string;
+    yearsOfExp?: number;
+    skill: {
+      id: string;
+      name: string;
+      category: string;
+    };
+  }>;
 }
 
 export interface CreateUserData {
