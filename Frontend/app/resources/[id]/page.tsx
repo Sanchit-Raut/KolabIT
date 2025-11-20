@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   ArrowLeft, 
   Download, 
@@ -19,7 +22,9 @@ import {
   FileText,
   Video,
   Link as LinkIcon,
-  Trash2
+  Trash2,
+  Edit,
+  X
 } from "lucide-react"
 import Link from "next/link"
 import { resourceApi } from "@/lib/api"
@@ -43,6 +48,13 @@ export default function ResourceDetailPage() {
   const [hoveredStar, setHoveredStar] = useState(0)
   const [review, setReview] = useState("")
   const [isSubmittingRating, setIsSubmittingRating] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    youtubeUrl: "",
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     if (resourceId) {
@@ -167,6 +179,68 @@ export default function ResourceDetailPage() {
       toast({
         title: "Error",
         description: "Failed to delete resource",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEditClick = () => {
+    setEditFormData({
+      title: resource?.title || "",
+      description: resource?.description || "",
+      youtubeUrl: resource?.youtubeUrl || "",
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdateResource = async () => {
+    if (!editFormData.title.trim() || !editFormData.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Title and description are required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      const updatedResource = await resourceApi.updateResource(resourceId, editFormData)
+      setResource(updatedResource)
+      setIsEditModalOpen(false)
+      toast({
+        title: "Success",
+        description: "Resource updated successfully",
+      })
+    } catch (err) {
+      console.error("[v0] Error updating resource:", err)
+      toast({
+        title: "Error",
+        description: "Failed to update resource",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteRating = async (ratingId: string) => {
+    if (!confirm("Are you sure you want to delete your rating?")) {
+      return
+    }
+
+    try {
+      await resourceApi.deleteRating(resourceId, ratingId)
+      toast({
+        title: "Success",
+        description: "Rating deleted successfully",
+      })
+      fetchResource() // Refresh resource data
+    } catch (err) {
+      console.error("[v0] Error deleting rating:", err)
+      toast({
+        title: "Error",
+        description: "Failed to delete rating",
         variant: "destructive",
       })
     }
@@ -368,16 +442,25 @@ export default function ResourceDetailPage() {
                 {isLiked ? "Liked" : "Like"}
               </Button>
               
-              {/* Delete Button - Only show if user is the owner */}
+              {/* Edit & Delete Buttons - Only show if user is the owner */}
               {user && user.id === resource.uploaderId && (
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  className="ml-auto"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleEditClick}
+                    className="ml-auto"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </>
               )}
             </div>
           </CardContent>
@@ -537,17 +620,30 @@ export default function ResourceDetailPage() {
                           <p className="font-medium">
                             {ratingItem.user?.firstName} {ratingItem.user?.lastName}
                           </p>
-                          <div className="flex gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${
-                                  i < ratingItem.rating
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < ratingItem.rating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            {/* Delete button for rating owner */}
+                            {user && user.id === ratingItem.userId && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteRating(ratingItem.id)}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                         {ratingItem.review && (
@@ -562,6 +658,65 @@ export default function ResourceDetailPage() {
           </Card>
         )}
       </div>
+
+      {/* Edit Resource Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Resource</DialogTitle>
+            <DialogDescription>Update your resource information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title *</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                placeholder="Resource title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description *</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                placeholder="Resource description"
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-youtube">YouTube URL (Optional)</Label>
+              <Input
+                id="edit-youtube"
+                value={editFormData.youtubeUrl}
+                onChange={(e) => setEditFormData({ ...editFormData, youtubeUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateResource}
+              disabled={isUpdating}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

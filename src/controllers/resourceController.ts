@@ -177,6 +177,18 @@ export class ResourceController {
   });
 
   /**
+   * Delete a rating
+   */
+  static deleteRating = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { resourceId, ratingId } = req.params;
+    const userId = (req as any).user.id;
+    
+    await ResourceService.deleteRating(resourceId, ratingId, userId);
+    
+    ResponseUtils.success(res, null, 'Rating deleted successfully');
+  });
+
+  /**
    * Get resource ratings
    */
   static getResourceRatings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

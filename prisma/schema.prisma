@@ -23,6 +23,11 @@ model User {
   verificationToken String?          @map("verification_token")
   resetToken        String?          @map("reset_token")
   resetTokenExpiry  DateTime?        @map("reset_token_expiry")
+  isAdmin           Boolean          @default(false) @map("is_admin")
+  isBanned          Boolean          @default(false) @map("is_banned")
+  bannedAt          DateTime?        @map("banned_at")
+  bannedBy          String?          @map("banned_by")
+  banReason         String?          @map("ban_reason")
   createdAt         DateTime         @default(now()) @map("created_at")
   updatedAt         DateTime         @updatedAt @map("updated_at")
   comments          Comment[]
@@ -43,6 +48,9 @@ model User {
   certifications    Certification[]
   portfolios        Portfolio[]
   analytics         Analytic?
+  receivedWarnings  Warning[]        @relation("UserWarnings")
+  issuedWarnings    Warning[]        @relation("AdminWarnings")
+  adminActions      AdminAction[]    @relation("AdminActions")
 
   @@map("users")
 }
@@ -364,4 +372,40 @@ model Message {
   @@index([senderId])
   @@index([recipientId])
   @@map("messages")
+}// Add these models to the end of your schema.prisma file
+
+model Warning {
+  id          String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId      String   @map("user_id")
+  adminId     String   @map("admin_id")
+  reason      String
+  message     String
+  type        String   // CHAT, COMMENT, RATING, POST, RESOURCE, PROJECT, GENERAL
+  relatedId   String?  @map("related_id") // ID of the related entity (comment, rating, post, etc.)
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  user  User @relation("UserWarnings", fields: [userId], references: [id], onDelete: Cascade)
+  admin User @relation("AdminWarnings", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([adminId])
+  @@map("warnings")
+}
+
+model AdminAction {
+  id          String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  adminId     String   @map("admin_id")
+  action      String   // BAN_USER, DELETE_USER, DELETE_COMMENT, DELETE_RATING, DELETE_POST, DELETE_PROJECT, WARN_USER
+  targetType  String   @map("target_type") // USER, COMMENT, RATING, POST, PROJECT, RESOURCE
+  targetId    String   @map("target_id")
+  reason      String
+  metadata    Json?    // Additional data about the action
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  admin User @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([targetId])
+  @@map("admin_actions")
 }

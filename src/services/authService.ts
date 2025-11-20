@@ -443,8 +443,126 @@ export class AuthService {
       throw new Error('User not found');
     }
 
-    await prisma.user.delete({
-      where: { id: userId },
+    // Delete all related records that have foreign key constraints
+    // Using a transaction to ensure all deletes succeed or fail together
+    await prisma.$transaction(async (tx) => {
+      // First, find or create a system "Deleted User" account to transfer ownership
+      let deletedUser = await tx.user.findFirst({
+        where: { email: 'deleted@system.internal' },
+      });
+
+      if (!deletedUser) {
+        // Create a system deleted user if it doesn't exist
+        const hashedPassword = await PasswordUtils.hashPassword('system-account-no-login');
+        deletedUser = await tx.user.create({
+          data: {
+            email: 'deleted@system.internal',
+            password: hashedPassword,
+            firstName: 'Deleted',
+            lastName: 'User',
+            isVerified: true,
+          },
+        });
+      }
+
+      // Transfer ownership of public contributions to deleted user account
+      // This preserves posts, comments, resources, and projects
+      await tx.post.updateMany({
+        where: { authorId: userId },
+        data: { authorId: deletedUser.id },
+      });
+
+      await tx.comment.updateMany({
+        where: { authorId: userId },
+        data: { authorId: deletedUser.id },
+      });
+
+      await tx.resource.updateMany({
+        where: { uploaderId: userId },
+        data: { uploaderId: deletedUser.id },
+      });
+
+      await tx.project.updateMany({
+        where: { ownerId: userId },
+        data: { ownerId: deletedUser.id },
+      });
+
+      // Now delete personal data
+      // Delete user skills
+      await tx.userSkill.deleteMany({
+        where: { userId },
+      });
+
+      // Delete user badges
+      await tx.userBadge.deleteMany({
+        where: { userId },
+      });
+
+      // Delete join requests
+      await tx.joinRequest.deleteMany({
+        where: { userId },
+      });
+
+      // Delete certifications
+      await tx.certification.deleteMany({
+        where: { userId },
+      });
+
+      // Delete portfolios
+      await tx.portfolio.deleteMany({
+        where: { userId },
+      });
+
+      // Delete analytics
+      await tx.analytic.deleteMany({
+        where: { userId },
+      });
+
+      // Delete notifications
+      await tx.notification.deleteMany({
+        where: { userId },
+      });
+
+      // Delete sent and received messages
+      await tx.message.deleteMany({
+        where: {
+          OR: [
+            { senderId: userId },
+            { recipientId: userId },
+          ],
+        },
+      });
+
+      // Delete project memberships
+      await tx.projectMember.deleteMany({
+        where: { userId },
+      });
+
+      // Delete tasks assigned to user
+      await tx.task.updateMany({
+        where: { assigneeId: userId },
+        data: { assigneeId: null },
+      });
+
+      // Delete resource ratings
+      await tx.resourceRating.deleteMany({
+        where: { userId },
+      });
+
+      // Delete resource likes
+      await tx.resourceLike.deleteMany({
+        where: { userId },
+      });
+
+      // Delete post likes
+      await tx.like.deleteMany({
+        where: { userId },
+      });
+
+      // Finally, delete the user
+      await tx.user.delete({
+        where: { id: userId },
+      });
     });
 
     return { message: 'Account deleted successfully' };

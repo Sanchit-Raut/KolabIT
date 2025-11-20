@@ -14,17 +14,23 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Plus, X, Loader2 } from "lucide-react"
+import { ArrowLeft, Plus, X, Loader2, Search, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import type { Skill } from "@/lib/types"
 import { normalizeUrl } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 export default function CreateProjectPage() {
   const router = useRouter()
   const { user, isAuthenticated, loading } = useAuth()
+  const { toast } = useToast()
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([])
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([])
   const [skillsLoading, setSkillsLoading] = useState(true)
+  const [skillSearchQuery, setSkillSearchQuery] = useState("")
+  const [showAddSkillDialog, setShowAddSkillDialog] = useState(false)
+  const [newSkillName, setNewSkillName] = useState("")
+  const [isAddingSkill, setIsAddingSkill] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
@@ -80,6 +86,51 @@ export default function CreateProjectPage() {
   const getSkillName = (skillId: string) => {
     return availableSkills.find((s) => s.id === skillId)?.name || skillId
   }
+
+  const handleAddNewSkill = async () => {
+    if (!newSkillName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a skill name",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAddingSkill(true)
+    try {
+      const newSkill = await skillApi.createSkill({
+        name: newSkillName.trim(),
+        category: "TECHNICAL", // Default category
+      })
+      
+      // Add to available skills list
+      setAvailableSkills(prev => [...prev, newSkill])
+      
+      // Auto-select the newly added skill
+      setSelectedSkillIds(prev => [...prev, newSkill.id])
+      
+      toast({
+        title: "Success",
+        description: `Skill "${newSkillName}" has been added!`,
+      })
+      
+      setNewSkillName("")
+      setShowAddSkillDialog(false)
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to add skill",
+        variant: "destructive",
+      })
+    } finally {
+      setIsAddingSkill(false)
+    }
+  }
+
+  const filteredSkills = availableSkills.filter(skill =>
+    skill.name.toLowerCase().includes(skillSearchQuery.toLowerCase())
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -280,19 +331,89 @@ export default function CreateProjectPage() {
               ) : (
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Available Skills</Label>
+                  
+                  {/* Skill Search Bar */}
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search skills..."
+                      value={skillSearchQuery}
+                      onChange={(e) => setSkillSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto p-2 border rounded-lg bg-muted/50">
-                    {availableSkills.map((skill) => (
-                      <div key={skill.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={skill.id}
-                          checked={selectedSkillIds.includes(skill.id)}
-                          onCheckedChange={() => toggleSkill(skill.id)}
-                        />
-                        <Label htmlFor={skill.id} className="text-sm cursor-pointer font-normal">
-                          {skill.name}
-                        </Label>
+                    {filteredSkills.length > 0 ? (
+                      filteredSkills.map((skill) => (
+                        <div key={skill.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={skill.id}
+                            checked={selectedSkillIds.includes(skill.id)}
+                            onCheckedChange={() => toggleSkill(skill.id)}
+                          />
+                          <Label htmlFor={skill.id} className="text-sm cursor-pointer font-normal">
+                            {skill.name}
+                          </Label>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center text-sm text-muted-foreground py-4">
+                        No skills found matching "{skillSearchQuery}"
                       </div>
-                    ))}
+                    )}
+                  </div>
+                  
+                  {/* Add New Skill Link */}
+                  <div className="mt-3">
+                    {!showAddSkillDialog ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddSkillDialog(true)}
+                        className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1"
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                        Can't find your skill? Add it
+                      </button>
+                    ) : (
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <Label htmlFor="new-skill" className="text-sm">New Skill Name</Label>
+                          <Input
+                            id="new-skill"
+                            placeholder="e.g., Machine Learning"
+                            value={newSkillName}
+                            onChange={(e) => setNewSkillName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleAddNewSkill()
+                              }
+                            }}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleAddNewSkill}
+                          disabled={isAddingSkill}
+                          className="bg-orange-500 hover:bg-orange-600"
+                        >
+                          {isAddingSkill ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowAddSkillDialog(false)
+                            setNewSkillName("")
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

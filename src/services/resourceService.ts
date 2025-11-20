@@ -615,11 +615,40 @@ export class ResourceService {
   /**
    * Rate resource
    */
+  /**
+   * Delete a rating
+   */
+  static async deleteRating(
+    resourceId: string,
+    ratingId: string,
+    userId: string
+  ): Promise<void> {
+    const rating = await prisma.resourceRating.findUnique({
+      where: { id: ratingId },
+    });
+
+    if (!rating) {
+      throw new Error('Rating not found');
+    }
+
+    if (rating.userId !== userId) {
+      throw new Error('Unauthorized to delete this rating');
+    }
+
+    if (rating.resourceId !== resourceId) {
+      throw new Error('Rating does not belong to this resource');
+    }
+
+    await prisma.resourceRating.delete({
+      where: { id: ratingId },
+    });
+  }
+
   static async rateResource(
     resourceId: string,
     userId: string,
     ratingData: CreateResourceRatingData
-  ): Promise<ResourceRatingData> {
+  ): Promise<ResourceRating> {
     // Check if resource exists
     const resource = await prisma.resource.findUnique({
       where: { id: resourceId },

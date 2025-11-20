@@ -34,6 +34,7 @@ router.delete('/:id', resourceIdValidation, ResourceController.deleteResource);
 
 // Resource rating
 router.post('/:id/rating', resourceIdValidation, resourceRatingValidation, handleValidationErrors, ResourceController.rateResource);
+router.delete('/:resourceId/ratings/:ratingId', ResourceController.deleteRating);
 
 // Resource like/unlike
 router.post('/:id/like', resourceIdValidation, handleValidationErrors, ResourceController.toggleLike);

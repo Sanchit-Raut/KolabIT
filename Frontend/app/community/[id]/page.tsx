@@ -9,12 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Heart, MessageCircle, Flag, Loader2, Trash2 } from "lucide-react"
+import { ArrowLeft, Heart, MessageCircle, Flag, Loader2, Trash2, Edit } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { postApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import type { Post, Comment } from "@/lib/types"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function PostDetailPage() {
   const params = useParams()
@@ -30,6 +33,12 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(0)
   const [commentContent, setCommentContent] = useState("")
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    content: "",
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -153,6 +162,67 @@ export default function PostDetailPage() {
     }
   }
 
+  const handleEditClick = () => {
+    setEditFormData({
+      title: post?.title || "",
+      content: post?.content || "",
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdatePost = async () => {
+    if (!editFormData.title.trim() || !editFormData.content.trim()) {
+      toast({
+        title: "Error",
+        description: "Title and content are required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      const updatedPost = await postApi.updatePost(postId, editFormData)
+      setPost(updatedPost)
+      setIsEditModalOpen(false)
+      toast({
+        title: "Success",
+        description: "Post updated successfully",
+      })
+    } catch (err) {
+      console.error("[v0] Error updating post:", err)
+      toast({
+        title: "Error",
+        description: "Failed to update post",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) {
+      return
+    }
+
+    try {
+      await postApi.deleteComment(postId, commentId)
+      setComments(comments.filter((c) => c.id !== commentId))
+      toast({
+        title: "Success",
+        description: "Comment deleted successfully",
+      })
+    } catch (err) {
+      console.error("[v0] Error deleting comment:", err)
+      toast({
+        title: "Error",
+        description: "Failed to delete comment",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -218,7 +288,19 @@ export default function PostDetailPage() {
                       </div>
                     </div>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">{post.type || "General"}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">{post.type || "General"}</Badge>
+                    {currentUser && currentUser.id === post.author?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleEditClick}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <h1 className="text-3xl font-bold">{post.title}</h1>
@@ -334,13 +416,25 @@ export default function PostDetailPage() {
                             <AvatarFallback>{comment.author?.firstName?.[0] || "U"}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">
-                                {comment.author?.firstName} {comment.author?.lastName}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                • {new Date(comment.createdAt).toLocaleDateString()}
-                              </span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">
+                                  {comment.author?.firstName} {comment.author?.lastName}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  • {new Date(comment.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {currentUser && currentUser.id === comment.userId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
                             </div>
                             <p className="text-sm mt-1 text-foreground">{comment.content}</p>
                           </div>
@@ -406,6 +500,60 @@ export default function PostDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Post Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                placeholder="Enter post title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-content">Content</Label>
+              <Textarea
+                id="edit-content"
+                value={editFormData.content}
+                onChange={(e) => setEditFormData({ ...editFormData, content: e.target.value })}
+                placeholder="Enter post content"
+                rows={8}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdatePost}
+              disabled={isUpdating || !editFormData.title.trim() || !editFormData.content.trim()}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Post"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

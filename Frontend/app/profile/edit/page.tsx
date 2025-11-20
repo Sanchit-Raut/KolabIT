@@ -14,7 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Camera, Plus, X, Save, ArrowLeft, Loader2, AlertCircle, Check, ChevronsUpDown } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Camera, Plus, X, Save, ArrowLeft, Loader2, AlertCircle, Check, ChevronsUpDown, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { authApi, userApi, skillApi } from "@/lib/api"
@@ -50,6 +51,9 @@ export default function EditProfilePage() {
   const [success, setSuccess] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [openSkillCombobox, setOpenSkillCombobox] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
 
   useEffect(() => {
     if (!authLoading && currentUser) {
@@ -73,7 +77,7 @@ export default function EditProfilePage() {
           id: s.id,
           name: s.name,
         }))
-        .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a: { id: string; name: string }, b: { id: string; name: string }) => a.name.localeCompare(b.name))
       setAvailableSkills(sortedSkills)
 
       // Fetch user's current skills
@@ -276,6 +280,43 @@ export default function EditProfilePage() {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") {
+      toast({
+        title: "Error",
+        description: 'Please type "DELETE" to confirm',
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsDeleting(true)
+      await authApi.deleteAccount()
+      
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted",
+      })
+
+      // Clear local storage and redirect to landing page
+      localStorage.removeItem("token")
+      localStorage.clear() // Clear all local storage
+      
+      // Redirect to landing page and force reload
+      window.location.href = "/" // Use window.location.href for hard redirect
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to delete account"
+      toast({
+        title: "Error",
+        description: errorMsg,
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -641,6 +682,45 @@ export default function EditProfilePage() {
             </CardContent>
           </Card>
 
+          {/* Danger Zone */}
+          <Card className="border-red-200 bg-red-50/50">
+            <CardHeader>
+              <CardTitle className="text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>
+                Permanently delete your account and all personal data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-white rounded-lg border border-red-200">
+                <h4 className="font-semibold text-sm mb-2">What will be deleted:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Your profile information and settings</li>
+                  <li>Your skills and badges</li>
+                  <li>Your join requests to projects</li>
+                  <li>All personal data associated with your account</li>
+                </ul>
+                <h4 className="font-semibold text-sm mt-4 mb-2">What will be kept:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Your created projects (transferred to anonymous user)</li>
+                  <li>Your community posts and comments</li>
+                  <li>Your resource ratings and reviews</li>
+                  <li>Public contributions to the platform</li>
+                </ul>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Account Permanently
+              </Button>
+            </CardContent>
+          </Card>
+
           <div className="flex justify-end">
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -654,6 +734,69 @@ export default function EditProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account and remove your personal data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                ⚠️ Warning: This is a permanent action
+              </p>
+              <p className="text-sm text-red-700">
+                Your profile, skills, badges, and join requests will be permanently deleted. Your public contributions (projects, posts, comments, ratings) will remain but will be marked as anonymous.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="delete-confirm">
+                Type <span className="font-bold">DELETE</span> to confirm
+              </Label>
+              <Input
+                id="delete-confirm"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                className="font-mono"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+                setDeleteConfirmText("")
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || deleteConfirmText !== "DELETE"}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Account
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

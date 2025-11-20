@@ -132,13 +132,12 @@ _________________-
 
 I need you to fix following features and do following tasks
 
-1. currently i am seeing basic info of the student in /explore tab. but skills are the main feature of our website. so the skills of user should be also visible in the card, below the bio of user in the /explore tab as a tag (static pill).
+1. currently i am seeing basic info of the student in /explore tab. but skills are the main feature of our website. so the skills of user should be also visible in the card, below the bio of user in the /explore tab as a tag (static pill). 
+NOT WORKING
 2. in /projects required skills by a project should be listed in the card of each respective project (in a static pill). it should be below the project description and above the owner name. 
 3. message button from /profile.[id] wont work, giving error, make it redirect to its chat
-page.tsx:143 [v0] Error sending message: TypeError: _lib_api__WEBPACK_IMPORTED_MODULE_5__.userApi.sendMessage is not a function
-    at handleMessage (page.tsx:137:21)
-handleMessage	@	page.tsx:143
-
+http://localhost:3000/messages/47f67570-f37d-43b7-9a2c-11bce6771c95 this is URL not with ?
+NOT WORKING
 4. in profle, the resources in resources tab should be clickable and redirect to the specific ones
 5. in post resource, order of the DIVs should be first resource type, then resource details, then video/article links,
 6. fix footer of landing page, remove all those unimplemented footer tags 
@@ -155,10 +154,23 @@ I need few more features in this websites
 1. edit resource option: an edit button to edit the shared resource by the owner.
 2. community post edit: community posts should also be editable by the owner
 3. delete comment/rating, a a delete option should be there for the user who made a reply on post or a rating on a resource.
-4. delete profie feature, a profile delete option should be given to a user inside edit profile, all the user data like his skills, his join requests,
-5. add skills in DB,
-6. in create project, a searchbar should be there at the available skills div, only search matching skills checkbox should be visible
+4. delete profie feature, a profile delete option should be given to a user inside edit profile, all the user data like his skills, his join requests, badges, (in short personal data) should be gone. the public data like his projects, posts, replys, ratings should not be deleted. 
+5. add skills in DB: a short hyperlink should be there on project/create/ tab where is says, 'cant find your skill? add it' then after clicking it a skill name should be asked and that skill should be added in the database.this hyperlink should be placed below the scrollbox of skills checkboxes
+6. in create project, a searchbar should be there at the available skills div, only search matching skills checkbox should be visible 
 
+
+----------------
+now there is a big task, a big feature to implement,
+i have to implement an Admin feature, i think you have to even create API routes for that purpose and modify the backend. so first of all lets focus on backend, DB, prisma
+main task of admin is manage users, warn them, moderate content
+i want a new tables for admin and its feature (if applicable) in my DB,
+the admin can, 
+- manage users (implement one, either delete them or ban them from login)
+- give warnings to users from chats
+- delete comments/replies from community post, delete rating on resources of any user present and warn him with a message
+- delete projects, and warn users
+
+implement above in backend first
 
 
 AFTER ADMIN, REPORT FEATURE FOR POST,REPLY,RATING,PROJECT,RESOURCE

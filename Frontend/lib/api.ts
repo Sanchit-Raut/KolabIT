@@ -123,6 +123,13 @@ export const authApi = {
     return response.data!
   },
 
+  deleteAccount: async (): Promise<{ message: string }> => {
+    const response = await apiCall<{ message: string }>("/auth/account", {
+      method: "DELETE",
+    })
+    return response.data!
+  },
+
   updateProfile: async (userData: Partial<User>): Promise<User> => {
     const response = await apiCall<User>("/auth/profile", {
       method: "PUT",
@@ -268,6 +275,13 @@ export const resourceApi = {
   trackDownload: async (resourceId: string) => {
     const response = await apiCall(`/resources/${resourceId}/download`, {
       method: 'POST',
+    });
+    return response.data;
+  },
+
+  deleteRating: async (resourceId: string, ratingId: string) => {
+    const response = await apiCall(`/resources/${resourceId}/ratings/${ratingId}`, {
+      method: 'DELETE',
     });
     return response.data;
   },
@@ -587,6 +601,21 @@ export const postApi = {
     })
     return response.data
   },
+
+  updatePost: async (postId: string, postData: { title?: string; content?: string; type?: string; tags?: string[] }) => {
+    const response = await apiCall(`/posts/${postId}`, {
+      method: "PUT",
+      body: JSON.stringify(postData),
+    })
+    return response.data
+  },
+
+  deleteComment: async (postId: string, commentId: string) => {
+    const response = await apiCall(`/posts/${postId}/comments/${commentId}`, {
+      method: "DELETE",
+    })
+    return response.data
+  },
 }
 
 // ============================================
@@ -628,6 +657,14 @@ export const skillApi = {
 
   getCategories: async () => {
     const response = await apiCall("/skills/categories/list")
+    return response.data
+  },
+
+  createSkill: async (skillData: { name: string; category?: string; description?: string }) => {
+    const response = await apiCall("/skills", {
+      method: "POST",
+      body: JSON.stringify(skillData),
+    })
     return response.data
   },
 }
