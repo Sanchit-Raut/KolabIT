@@ -57,7 +57,11 @@ export function Header() {
     { href: "/resources", label: "Resources" },
     { href: "/community", label: "Community" },
     ...(isAuthenticated ? [
-      { href: "/dashboard", label: "Dashboard" },
+      ...(user?.role === "ADMIN" ? [
+        { href: "/admin", label: "Admin" }
+      ] : [
+        { href: "/dashboard", label: "Dashboard" }
+      ]),
       { href: "/messages", label: "Messages" }
     ] : []),
   ]

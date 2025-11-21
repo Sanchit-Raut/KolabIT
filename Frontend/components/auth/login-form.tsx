@@ -33,7 +33,7 @@ export function LoginForm() {
 
     try {
       await login(email, password)
-      router.push("/dashboard")
+      window.location.href = "/explore"
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Login failed"
       setLocalError(errorMessage)

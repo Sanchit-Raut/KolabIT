@@ -172,6 +172,14 @@ the admin can,
 
 implement above in backend first
 
+- FRONTEND
+give a very simple frontend same as a normal user to the admin,
+but instead of dashboard, give him a management page
+where he can manage users, posts, resources, projects and etc.
 
-AFTER ADMIN, REPORT FEATURE FOR POST,REPLY,RATING,PROJECT,RESOURCE
 clear garbage
+
+
+there is a flag icon button in community post details, i want that same button in project as well as in resource. that button should function too. after clicking it by some other user, all admin should get notified that XXXXX reported this post/project/resource. then after clicking that notification by admin, admin should be redirected to that post/project/resource.
+
+also give searchbars in the admin dashboard tabs for banned user, posts, resources, project

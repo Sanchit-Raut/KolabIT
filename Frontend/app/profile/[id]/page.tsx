@@ -4,16 +4,19 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { useAuth } from "@/lib/auth-context"
-import { userApi, projectApi, resourceApi, badgeApi } from "@/lib/api"
+import { userApi, projectApi, resourceApi, badgeApi, adminApi } from "@/lib/api"
 import type { User, UserSkill, Project, Resource } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Mail, BookOpen, Code, Loader2, MessageCircle, ExternalLink, Award, 
   Target, Users, Share2, Heart, Star, Trophy, Sparkles, Medal, GraduationCap, 
-  Rocket, Flame, Crown } from "lucide-react"
+  Rocket, Flame, Crown, Ban } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 
@@ -86,6 +89,9 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<BadgeItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [banDialogOpen, setBanDialogOpen] = useState(false)
+  const [banReason, setBanReason] = useState("")
+  const [banning, setBanning] = useState(false)
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -135,6 +141,39 @@ export default function ProfilePage() {
 
     router.push(`/messages/${id}`)
   }
+
+  const handleBanUser = async () => {
+    if (!banReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for banning",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setBanning(true)
+      await adminApi.banUser(id, banReason, true)
+      toast({
+        title: "User Banned",
+        description: "User has been banned successfully",
+      })
+      setBanDialogOpen(false)
+      setBanReason("")
+      router.push("/admin")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to ban user",
+        variant: "destructive",
+      })
+    } finally {
+      setBanning(false)
+    }
+  }
+
+  const isAdmin = (currentUser as any)?.role === "ADMIN"
 
   if (loading) {
     return (
@@ -212,6 +251,15 @@ export default function ProfilePage() {
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Message
                       </Button>
+                      {isAdmin && (
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => setBanDialogOpen(true)}
+                        >
+                          <Ban className="h-4 w-4 mr-2" />
+                          Ban User
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -414,6 +462,58 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Ban User Dialog */}
+      <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ban User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to ban {user?.firstName} {user?.lastName}? This action will prevent them from accessing the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="ban-reason">Reason for Ban</Label>
+              <Input
+                id="ban-reason"
+                placeholder="Enter reason for banning this user"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBanDialogOpen(false)
+                setBanReason("")
+              }}
+              disabled={banning}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBanUser}
+              disabled={banning || !banReason.trim()}
+            >
+              {banning ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Banning...
+                </>
+              ) : (
+                <>
+                  <Ban className="h-4 w-4 mr-2" />
+                  Ban User
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

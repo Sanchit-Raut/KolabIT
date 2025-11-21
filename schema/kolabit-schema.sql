@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
   verification_token TEXT,
   reset_token TEXT,
   reset_token_expiry TIMESTAMPTZ,
+  role TEXT NOT NULL DEFAULT 'USER',
+  is_banned BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -265,6 +267,67 @@ CREATE TABLE IF NOT EXISTS messages (
   CONSTRAINT fk_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Table: admins
+CREATE TABLE IF NOT EXISTS admins (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id TEXT NOT NULL UNIQUE,
+  permissions JSONB NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_admins_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: user_bans
+CREATE TABLE IF NOT EXISTS user_bans (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id TEXT NOT NULL UNIQUE,
+  banned_by TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  banned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ,
+  is_permanent BOOLEAN NOT NULL DEFAULT false,
+  CONSTRAINT fk_user_bans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_bans_admin FOREIGN KEY (banned_by) REFERENCES users(id)
+);
+
+-- Table: user_warnings
+CREATE TABLE IF NOT EXISTS user_warnings (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id TEXT NOT NULL,
+  issued_by TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_user_warnings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_warnings_admin FOREIGN KEY (issued_by) REFERENCES users(id)
+);
+
+-- Table: admin_actions
+CREATE TABLE IF NOT EXISTS admin_actions (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  admin_id TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  details JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_admin_actions_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Table: reports
+CREATE TABLE IF NOT EXISTS reports (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  reporter_id TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_reports_reporter FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 -- ============================================
 -- 1. SKILLS (with auto-generated UUIDs)
@@ -415,10 +478,21 @@ CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee_id ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON messages(receiver_id);
+CREATE INDEX IF NOT EXISTS idx_admins_user_id ON admins(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_bans_user_id ON user_bans(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_warnings_user_id ON user_warnings(user_id);
+CREATE INDEX IF NOT EXISTS idx_admin_actions_admin_id ON admin_actions(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_actions_target ON admin_actions(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_reports_reporter_id ON reports(reporter_id);
+CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 
 
 -- Migration: Create project_resources table
 -- This table links resources to projects
+
+-- FOR ADMIN PURPOSES, EXECUTE following
+-- update users set role='ADMIN' where email='vedant.kannurkar24@spit.ac.in';
 
 CREATE TABLE IF NOT EXISTS project_resources (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -435,8 +509,6 @@ CREATE INDEX IF NOT EXISTS idx_project_resources_resource_id ON project_resource
 
 -- Add comment to table
 COMMENT ON TABLE project_resources IS 'Links resources to projects for easy access by project members';
-
-
 
 
 -- Truncate Commands
@@ -460,5 +532,12 @@ COMMENT ON TABLE project_resources IS 'Links resources to projects for easy acce
 -- TRUNCATE TABLE skills CASCADE;
 -- TRUNCATE TABLE tasks CASCADE;
 -- TRUNCATE TABLE user_badges CASCADE;
+-- TRUNCATE TABLE user_skills CASCADE;
+-- TRUNCATE TABLE users CASCADE;
+-- TRUNCATE TABLE admins CASCADE;
+-- TRUNCATE TABLE user_bans CASCADE;
+-- TRUNCATE TABLE user_warnings CASCADE;
+-- TRUNCATE TABLE admin_actions CASCADE;
+-- TRUNCATE TABLE reports CASCADE;
 
 

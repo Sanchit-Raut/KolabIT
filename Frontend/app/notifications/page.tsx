@@ -130,6 +130,12 @@ export default function NotificationsPage() {
         return
       }
       
+      // Content reported notifications (for admins)
+      if (type === 'CONTENT_REPORTED' && data.contentUrl) {
+        router.push(data.contentUrl)
+        return
+      }
+      
       // User profile-related notifications
       if (data.userId && (type === 'SKILL_ENDORSEMENT' || type === 'FOLLOW')) {
         router.push(`/users/${data.userId}`)

@@ -23,6 +23,8 @@ import certificationRoutes from './routes/certification';
 import portfolioRoutes from './routes/portfolio';
 import analyticsRoutes from './routes/analytics';
 import messageRoutes from './routes/message';
+import adminRoutes from './routes/admin';
+import reportRoutes from './routes/reports';
 
 const app = express();
 const server = createServer(app);
@@ -98,6 +100,8 @@ app.use('/api/certifications', certificationRoutes);
 app.use('/api/portfolios', portfolioRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Heart, MessageCircle, Flag, Loader2, Trash2, Edit } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { postApi } from "@/lib/api"
+import { postApi, reportApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import type { Post, Comment } from "@/lib/types"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -39,6 +39,9 @@ export default function PostDetailPage() {
     content: "",
   })
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+  const [reportReason, setReportReason] = useState("")
+  const [isReporting, setIsReporting] = useState(false)
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -201,6 +204,51 @@ export default function PostDetailPage() {
     }
   }
 
+  const handleReportPost = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to report content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!reportReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for reporting",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsReporting(true)
+    try {
+      await reportApi.createReport({
+        targetType: 'POST',
+        targetId: postId,
+        reason: reportReason.trim(),
+      })
+      
+      setIsReportDialogOpen(false)
+      setReportReason("")
+      toast({
+        title: "Report submitted",
+        description: "Thank you for helping keep our community safe. Admins will review this content.",
+      })
+    } catch (err) {
+      console.error("[v0] Error reporting post:", err)
+      toast({
+        title: "Error",
+        description: "Failed to submit report",
+        variant: "destructive",
+      })
+    } finally {
+      setIsReporting(false)
+    }
+  }
+
   const handleDeleteComment = async (commentId: string) => {
     if (!confirm("Are you sure you want to delete this comment?")) {
       return
@@ -342,7 +390,12 @@ export default function PostDetailPage() {
                       <Heart className={`h-4 w-4 mr-2 ${liked ? "fill-current" : ""}`} />
                       {liked ? "Liked" : "Like"}
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setIsReportDialogOpen(true)}
+                      disabled={!currentUser}
+                    >
                       <Flag className="h-4 w-4" />
                     </Button>
                     
@@ -549,6 +602,57 @@ export default function PostDetailPage() {
                 </>
               ) : (
                 "Update Post"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report Post</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for reporting this post. Our admin team will review it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reportReason">Reason *</Label>
+              <Textarea
+                id="reportReason"
+                placeholder="Describe why you're reporting this post..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsReportDialogOpen(false)
+                setReportReason("")
+              }}
+              disabled={isReporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReportPost}
+              disabled={isReporting || !reportReason.trim()}
+              variant="destructive"
+            >
+              {isReporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Reporting...
+                </>
+              ) : (
+                "Report Post"
               )}
             </Button>
           </div>

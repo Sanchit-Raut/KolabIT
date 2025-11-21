@@ -24,10 +24,11 @@ import {
   Link as LinkIcon,
   Trash2,
   Edit,
-  X
+  X,
+  Flag
 } from "lucide-react"
 import Link from "next/link"
-import { resourceApi } from "@/lib/api"
+import { resourceApi, reportApi } from "@/lib/api"
 import type { Resource } from "@/lib/types"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -55,6 +56,9 @@ export default function ResourceDetailPage() {
     youtubeUrl: "",
   })
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showReportDialog, setShowReportDialog] = useState(false)
+  const [reportReason, setReportReason] = useState("")
+  const [isReporting, setIsReporting] = useState(false)
 
   useEffect(() => {
     if (resourceId) {
@@ -243,6 +247,51 @@ export default function ResourceDetailPage() {
         description: "Failed to delete rating",
         variant: "destructive",
       })
+    }
+  }
+
+  const handleReportResource = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to report content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!reportReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for reporting",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsReporting(true)
+    try {
+      await reportApi.createReport({
+        targetType: 'RESOURCE',
+        targetId: resourceId,
+        reason: reportReason.trim(),
+      })
+      
+      setShowReportDialog(false)
+      setReportReason("")
+      toast({
+        title: "Report submitted",
+        description: "Thank you for helping keep our community safe. Admins will review this content.",
+      })
+    } catch (err) {
+      console.error("[v0] Error reporting resource:", err)
+      toast({
+        title: "Error",
+        description: "Failed to submit report",
+        variant: "destructive",
+      })
+    } finally {
+      setIsReporting(false)
     }
   }
 
@@ -441,6 +490,17 @@ export default function ResourceDetailPage() {
                 <Heart className={`h-4 w-4 mr-2 ${isLiked ? "fill-white" : ""}`} />
                 {isLiked ? "Liked" : "Like"}
               </Button>
+              
+              {/* Report Button - Show for non-owners */}
+              {user && user.id !== resource.uploaderId && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReportDialog(true)}
+                >
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report
+                </Button>
+              )}
               
               {/* Edit & Delete Buttons - Only show if user is the owner */}
               {user && user.id === resource.uploaderId && (
@@ -712,6 +772,57 @@ export default function ResourceDetailPage() {
                 </>
               ) : (
                 "Save Changes"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report Resource</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for reporting this resource. Our admin team will review it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reportReason">Reason *</Label>
+              <Textarea
+                id="reportReason"
+                placeholder="Describe why you're reporting this resource..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowReportDialog(false)
+                setReportReason("")
+              }}
+              disabled={isReporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReportResource}
+              disabled={isReporting || !reportReason.trim()}
+              variant="destructive"
+            >
+              {isReporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Reporting...
+                </>
+              ) : (
+                "Report Resource"
               )}
             </Button>
           </div>

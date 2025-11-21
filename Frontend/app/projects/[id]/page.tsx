@@ -28,11 +28,12 @@ import {
   Eye,
   Heart,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Flag
 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { projectApi, skillApi } from "@/lib/api"
+import { projectApi, skillApi, reportApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { normalizeUrl } from "@/lib/utils"
 import type { Project, Skill, JoinRequest } from "@/lib/types"
@@ -70,6 +71,10 @@ export default function ProjectDetailPage() {
     requiredSkills: [] as string[],
   })
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false)
+
+  const [showReportDialog, setShowReportDialog] = useState(false)
+  const [reportReason, setReportReason] = useState("")
+  const [isReporting, setIsReporting] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -195,15 +200,61 @@ export default function ProjectDetailPage() {
       })
       setShowJoinModal(false)
       setJoinMessage("")
-      checkJoinRequestStatus()
-    } catch (err) {
+      fetchProject() // Refresh to show updated join request
+    } catch (err: any) {
+      console.error("[v0] Error joining project:", err)
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to send request",
+        description: err.message || "Failed to send join request",
         variant: "destructive",
       })
     } finally {
       setIsSubmittingJoin(false)
+    }
+  }
+
+  const handleReportProject = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to report content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!reportReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for reporting",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsReporting(true)
+    try {
+      await reportApi.createReport({
+        targetType: 'PROJECT',
+        targetId: projectId,
+        reason: reportReason.trim(),
+      })
+      
+      setShowReportDialog(false)
+      setReportReason("")
+      toast({
+        title: "Report submitted",
+        description: "Thank you for helping keep our community safe. Admins will review this content.",
+      })
+    } catch (err) {
+      console.error("[v0] Error reporting project:", err)
+      toast({
+        title: "Error",
+        description: "Failed to submit report",
+        variant: "destructive",
+      })
+    } finally {
+      setIsReporting(false)
     }
   }
 
@@ -749,6 +800,19 @@ export default function ProjectDetailPage() {
               </Button>
             )}
 
+            {/* Report Button */}
+            {currentUser && !isOwner && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={() => setShowReportDialog(true)}
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                Report Project
+              </Button>
+            )}
+
             {/* Project Stats */}
             <Card>
               <CardHeader>
@@ -1005,6 +1069,57 @@ export default function ProjectDetailPage() {
                 </>
               ) : (
                 "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report Project</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for reporting this project. Our admin team will review it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reportReason">Reason *</Label>
+              <Textarea
+                id="reportReason"
+                placeholder="Describe why you're reporting this project..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowReportDialog(false)
+                setReportReason("")
+              }}
+              disabled={isReporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReportProject}
+              disabled={isReporting || !reportReason.trim()}
+              variant="destructive"
+            >
+              {isReporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Reporting...
+                </>
+              ) : (
+                "Report Project"
               )}
             </Button>
           </DialogFooter>

@@ -81,7 +81,7 @@ export class AuthService {
     const token = JWTUtils.generateToken({
       userId: user.id,
       email: user.email,
-      role: 'user',
+      role: user.role || 'USER',
     });
 
     const userProfile: UserProfile = {
@@ -121,6 +121,11 @@ export class AuthService {
       throw new Error('Please verify your email before logging in');
     }
 
+    // Check if user is banned
+    if (user.isBanned) {
+      throw new Error('Your account has been banned. Please contact support for more information.');
+    }
+
     // Verify password
     const isPasswordValid = await PasswordUtils.comparePassword(password, user.password);
     if (!isPasswordValid) {
@@ -131,7 +136,7 @@ export class AuthService {
     const token = JWTUtils.generateToken({
       userId: user.id,
       email: user.email,
-      role: 'user',
+      role: user.role || 'USER',
     });
 
     // Return user without password
@@ -349,6 +354,7 @@ export class AuthService {
         bio: true,
         avatar: true,
         isVerified: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -769,6 +769,122 @@ export const messageApi = {
   },
 }
 
+// Admin API
+export const adminApi = {
+  // User management
+  banUser: async (userId: string, reason: string, isPermanent: boolean = true) => {
+    return apiCall(`/admin/users/${userId}/ban`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, isPermanent }),
+    });
+  },
+
+  unbanUser: async (userId: string) => {
+    return apiCall(`/admin/users/${userId}/unban`, {
+      method: 'POST',
+    });
+  },
+
+  warnUser: async (userId: string, reason: string, severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') => {
+    return apiCall(`/admin/users/${userId}/warn`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, severity }),
+    });
+  },
+
+  getUserWarnings: async (userId: string) => {
+    return apiCall(`/admin/users/${userId}/warnings`);
+  },
+
+  getAllWarnings: async () => {
+    return apiCall('/admin/warnings');
+  },
+
+  getBannedUsers: async () => {
+    return apiCall('/admin/banned-users');
+  },
+
+  // Content moderation
+  deleteComment: async (commentId: string, reason: string) => {
+    return apiCall(`/admin/comments/${commentId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  deleteRating: async (ratingId: string, reason: string) => {
+    return apiCall(`/admin/ratings/${ratingId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  deleteProject: async (projectId: string, reason: string) => {
+    return apiCall(`/admin/projects/${projectId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  deleteResource: async (resourceId: string, reason: string) => {
+    return apiCall(`/admin/resources/${resourceId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  deletePost: async (postId: string, reason: string) => {
+    return apiCall(`/admin/posts/${postId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    });
+  },
+};
+
+// ============================================
+// Report API
+// ============================================
+export const reportApi = {
+  /**
+   * Report content (post, project, or resource)
+   */
+  createReport: async (data: {
+    targetType: 'POST' | 'PROJECT' | 'RESOURCE';
+    targetId: string;
+    reason: string;
+  }): Promise<ApiResponse<any>> => {
+    return apiCall<any>('/reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Get all reports (admin only)
+   */
+  getReports: async (status?: string): Promise<ApiResponse<any[]>> => {
+    const queryString = status ? `?status=${status}` : '';
+    return apiCall<any[]>(`/reports${queryString}`);
+  },
+
+  /**
+   * Get specific report (admin only)
+   */
+  getReportById: async (reportId: string): Promise<ApiResponse<any>> => {
+    return apiCall<any>(`/reports/${reportId}`);
+  },
+
+  /**
+   * Update report status (admin only)
+   */
+  updateReportStatus: async (reportId: string, status: string): Promise<ApiResponse<any>> => {
+    return apiCall<any>(`/reports/${reportId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
 // Export all APIs
 export default {
   auth: authApi,
@@ -781,4 +897,6 @@ export default {
   notification: notificationApi,
   analytics: analyticsApi,
   message: messageApi,
+  admin: adminApi,
+  report: reportApi,
 }

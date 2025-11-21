@@ -2,8 +2,9 @@ import { Response, NextFunction } from 'express';
 import { JWTUtils } from '../utils/jwt';
 import { ResponseUtils } from '../utils/response';
 import { AuthRequest } from '../types';
+import prisma from '../config/database';
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -14,6 +15,18 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   try {
     const decoded = JWTUtils.verifyToken(token);
+    
+    // Check if user is banned
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { isBanned: true },
+    });
+
+    if (user?.isBanned) {
+      ResponseUtils.error(res, 'Your account has been banned. Please contact support.', 403);
+      return;
+    }
+
     req.user = {
       id: decoded.userId,
       email: decoded.email,

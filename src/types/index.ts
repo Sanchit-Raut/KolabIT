@@ -38,6 +38,7 @@ export interface UserProfile {
   bio?: string;
   avatar?: string;
   isVerified: boolean;
+  role?: string;
   createdAt: Date;
   updatedAt: Date;
   userSkills?: Array<{
